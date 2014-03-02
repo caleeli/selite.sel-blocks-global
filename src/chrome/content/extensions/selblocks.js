@@ -561,22 +561,22 @@ function $X(xpath, contextNode, resultType) {
   function compileSelBlocksTestCase( testCase ) {
     // SelBlocksGlobal: I set lexStack here, since it's local stack per testCase (and only used during compilation)
     var lexStack = new Stack();
-    // SelBlocksGlobal: Following loop variable testCaseIndex was renamed from 'i' in SelBlocks.
-    // I set variable 'i' to globIdx() value of the original intended value of 'i'. This way
+    // SelBlocksGlobal: Following loop variable commandIndex was renamed from 'i' in SelBlocks.
+    // I set variable 'i' to globIdx() value of commandIndex (i.e. of the original intended value of 'i'). This way
     // the original SelBlocks code still uses variable 'i', so there are less merge conflicts.
-    var testCaseIndex;
-    for (testCaseIndex = 0; testCaseIndex < testCase.commands.length; testCaseIndex++)
+    var commandIndex;
+    for (commandIndex = 0; commandIndex < testCase.commands.length; commandIndex++)
     {
-      if (testCase.commands[testCaseIndex].type === "command")
+      if (testCase.commands[commandIndex].type === "command")
       {
-        var curCmd = testCase.commands[testCaseIndex].command;
+        var curCmd = testCase.commands[commandIndex].command;
         var aw = curCmd.indexOf("AndWait");
         if (aw !== -1) {
           // just ignore the suffix for now, this may or may not be a SelBlocks commands
           curCmd = curCmd.substring(0, aw);
         }
-        var cmdTarget = testCase.commands[testCaseIndex].target;
-        var i= globIdx(testCaseIndex, testCase);
+        var cmdTarget = testCase.commands[commandIndex].target;
+        var i= globIdx(commandIndex, testCase);
 
         var ifDef;
         var tryDef;
