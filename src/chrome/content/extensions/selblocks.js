@@ -749,9 +749,7 @@ function $X(xpath, contextNode, resultType) {
     }
     //- command validation
     function assertNotAndWaitSuffix(cmdIdx) {
-      var test= localCase(cmdIdx);
-      var commandIdx= localIdx(cmdIdx);
-      assertCmd(cmdIdx, (test.commands[commandIdx].command.indexOf("AndWait") === -1),
+      assertCmd(cmdIdx, localCase(cmdIdx).commands[ localIdx(cmdIdx) ].command.indexOf("AndWait") === -1,
         ", AndWait suffix is not valid for SelBlocks commands");
     }
     //- active block validation
@@ -983,7 +981,7 @@ function $X(xpath, contextNode, resultType) {
 
     // log an advisory about the active catch block
     if (tryDef.catchIdx) {
-      var errDcl = testCase.commands[tryDef.catchIdx].target;
+      var errDcl = testCase.commands[ localIdx(tryDef.catchIdx) ].target;
       $$.LOG.debug(tryName + " catchable: " + (errDcl || "ANY"));
     }
 
@@ -1132,7 +1130,7 @@ function $X(xpath, contextNode, resultType) {
 
   //- error message matcher
   Selenium.prototype.isMatchingCatch= function(e, catchIdx) {
-    var errDcl = testCase.commands[catchIdx].target;
+    var errDcl = testCase.commands[ localIdx(catchIdx) ].target;
     if (!errDcl) {
       return true; // no error specified means catch all errors
     }
@@ -1264,7 +1262,7 @@ function $X(xpath, contextNode, resultType) {
       bbl = "@" + ($$.tcf.bubbling.srcIdx+1) + " ";
     }
     var tryDef = blkDefFor(tryState);
-    var catchDcl = testCase.commands[tryDef.catchIdx].target;
+    var catchDcl = testCase.commands[ localIdx(tryDef.catchIdx) ].target;
     return " :: " + bbl + catchDcl;
   }
   
@@ -1826,7 +1824,7 @@ function $X(xpath, contextNode, resultType) {
     var test= localCase(idx);
     var commandIdx= localIdx(idx);
 
-    return ("@" +test.filename+ ': ' +(commandIdx+1) + ": " + fmtCommand(test.commands[commandIdx]));
+    return "@" +test.filename+ ': ' +(commandIdx+1) + ": " + fmtCommand( test.commands[commandIdx] );
   }
   function fmtCommand(cmd) {
     var c = cmd.command;
