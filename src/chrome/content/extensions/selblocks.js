@@ -443,19 +443,19 @@ function $X(xpath, contextNode, resultType) {
   // if testCase.nextCommand() ever changes, this will need to be revisited
   // (current as of: selenium-ide-2.4.0)
   // See Selenium's {a6fd85ed-e919-4a43-a5af-8da18bda539f}/chrome/content/testCase.js
-  // This is for a head-intercept of testCase.nextCommand(), and it adds support for SelBlocksGlobal branches (across test cases).
+  // This is for a head-intercept of TestCaseDebugContext.prototype.nextCommand(), and it adds support for SelBlocksGlobal branches (across test cases).
   // We can't redefine/tail-intercept testCase.debugContext.nextCommand() at the time
   // this SelBlocksGlobal source file is loaded, because testCase is not defined yet. Therefore we do it here
   // on the first run of the enclosing tail intercept of Selenium.prototype.reset() below.
+  // And we intercept do it on the prototype, so that it applies to any test cases.
   function nextCommand() {
-    LOG.debug( 'SelBlocks nextCommand() starting');
-    if (!this.started) {
-      // SelBlocksGlobal hook for SeBootstrap
-      if( this.selenium!==undefined && typeof this.selenium.doReloadScripts=='function' ) {
-          this.selenium.doReloadScripts();
+    LOG.debug( 'SelBlocks head-intercept of TestCaseDebugContext.nextCommand()');
+    if( this.started ) {
+      // SelBlocksGlobal hook for SeLite Bootstrap
+      if( typeof Selenium.reloadScripts==='function' ) { // SeLite Bootstrap is loaded
+          console.error('selblocks calling Selenium.reloadScripts()');
+          Selenium.reloadScripts();
       }
-    }
-    else {
       if (branchIdx !== null) {
         LOG.debug("Selblocks branch => " + fmtCmdRef(branchIdx));
         // Following uses -1 because the original nextCommand() will increase this.debugIndex by 1 when invoked below
