@@ -66,7 +66,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <param name="forSpec">Composite defining loop bounds and repetition condition,
         C/C++/Java/Javascript/PHP-like,
         in 3 parts separated by semicolons: <code>initiation; condition; iteration</code>.
-        For example: <code>i=0; i &lt;= 100; i++</code>
+        For example: <code>$i=0; $i&lt;=100; $i++</code>
     </param>
     <param name="localVarsSpec">List of variable(s) used in either initiation, condition
         or iteration parts of parameter <code>forSpec</code>.
