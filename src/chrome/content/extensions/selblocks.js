@@ -451,7 +451,7 @@ function $X(xpath, contextNode, resultType) {
   function nextCommand() {
     LOG.debug( 'SelBlocks head-intercept of TestCaseDebugContext.nextCommand()');
     if( this.started ) {
-      // SelBlocksGlobal hook for SeLite Bootstrap
+      // SelBlocksGlobal hook for SeLite Bootstrap. @TODO This shouldn't be here, but in testcase-debug-context. However, that would currently be a pain in the neck due to http://code.google.com/p/selenium/issues/detail?id=6697 and https://code.google.com/p/selenium/issues/detail?id=5495.
       if( typeof Selenium.reloadScripts==='function' ) { // SeLite Bootstrap is loaded
           console.error('selblocks calling Selenium.reloadScripts()');
           Selenium.reloadScripts();
@@ -504,9 +504,9 @@ function $X(xpath, contextNode, resultType) {
     // TBD: this should be a tail intercept rather than brute force replace
     // SelBlocksGlobal: This is a head-intercept, rather than interceptReplace as in SelBlocks 2.0.1,
     // and I'm intercepting TestCaseDebugContext.prototype.nextCommand() rather than testCase.debugContext.nextCommand()
-    $$.LOG.debug("Configuring head intercept: TestCaseDebugContext.prototype.nextCommand()");
-    $$.fn.interceptBefore(TestCaseDebugContext.prototype, "nextCommand", nextCommand);
-    testCaseDebugContextWasIntercepted= true;
+        $$.LOG.debug("Configuring head intercept: TestCaseDebugContext.prototype.nextCommand()");
+        $$.fn.interceptBefore(TestCaseDebugContext.prototype, "nextCommand", nextCommand);
+        testCaseDebugContextWasIntercepted= true;
     }
   });
     }
@@ -836,13 +836,7 @@ function $X(xpath, contextNode, resultType) {
 
   var iexpr = Object.create($$.InfixExpressionParser);
 
-  // validate variable/parameter names
-  function validateNames(names, desc) {
-    var i;
-    for (i = 0; i < names.length; i++) {
-      validateName(names[i], desc);
-    }
-  }
+  // validate declared variable/parameter name (without $ prefix)
   function validateName(name, desc) {
     var match = name.match(/^[a-zA-Z]\w*$/);
     if (!match) {
@@ -1300,7 +1294,11 @@ function $X(xpath, contextNode, resultType) {
           loop.iterStmt = specs[2];
           var localVarNames = parseVarNames(loop.initStmt);
           $$.LOG.debug("localVarNames: " + localVarNames.join(','));
-          validateNames(localVarNames, "variable");
+          for( var i=0; i<localVarNames.length; i++ ) { //@TODO  for(.. of..) loop once NetBeans support it.
+              var variableName= localVarNames[i];
+              variableName.length>1 && variableName[0]==='$' || notifyFatal( 'For loop ' +(i+1)+ 'th variable name must start with $ and have at least two characters.' );
+              validateName( variableName.substring(1), 'For loop ' +(i+1)+ 'th variable name' );
+          }
           return localVarNames;
       }
       ,function(loop) { self.evalWithExpandedStoredVars(loop.initStmt); }          // initialize
