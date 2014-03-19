@@ -1548,7 +1548,9 @@ function $X(xpath, contextNode, resultType) {
       // returning from completed function
       var popped= callStack.pop();
       loop.commandError= popped.originalCommandError;
-      restoreVarState( popped.savedVars );
+      var _result= storedVars._result;
+      storedVars= popped.savedVars; //restoreVarState( popped.savedVars );
+      storedVars._result= _result;
       assert( testCase==popped.testCase, "The popped testCase is different." ); // Not sure why, but this seems to be true.
     }
     else {
@@ -1556,16 +1558,17 @@ function $X(xpath, contextNode, resultType) {
       argSpec= expandStoredVars(argSpec);
       // save existing variable state and set args as local variables
       var args = this.parseArgs(argSpec);
-      var savedVars = getVarStateFor(args);
-      setVars(args);
+      var savedVars= storedVars; //var savedVars = getVarStateFor(args);
+      storedVars= args; //args= setVars(args);
 
       var originalCommandError= loop.commandError;
       // There can be several cascading layers of these calls - one per function call level.
       loop.commandError= function( result ) {
           var popped= callStack.pop();
           this.commandError= popped.originalCommandError;
-          restoreVarState( popped.savedVars );
-          //debugger;
+            var _result= storedVars._result;
+            storedVars= popped.savedVars; //restoreVarState( popped.savedVars );
+            storedVars._result= _result;
           testCase= popped.testCase;
           testCase.debugContext.testCase= testCase;
           editor.selDebugger.pause();
@@ -1596,8 +1599,7 @@ function $X(xpath, contextNode, resultType) {
     var funcDef = blkDefHere();
     var activeCallFrame = callStack.top();
     if (activeCallFrame.funcIdx === idxHere()) {
-      // get parameter values
-      setVars(activeCallFrame.args);
+      //SelBlocks used to call setVars(activeCallFrame.args); here. But this was already handled in doCall().
     }
     else {
       // no active call, skip around function body
