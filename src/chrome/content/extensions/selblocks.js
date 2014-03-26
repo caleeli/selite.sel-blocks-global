@@ -453,7 +453,7 @@ function $X(xpath, contextNode, resultType) {
     if( this.started ) {
       // SelBlocksGlobal hook for SeLite Bootstrap. @TODO This shouldn't be here, but in testcase-debug-context. However, that would currently be a pain in the neck due to http://code.google.com/p/selenium/issues/detail?id=6697 and https://code.google.com/p/selenium/issues/detail?id=5495.
       if( typeof Selenium.reloadScripts==='function' ) { // SeLite Bootstrap is loaded
-          console.error('selblocks calling Selenium.reloadScripts()');
+          LOG.debug('selblocks calling Selenium.reloadScripts()');
           Selenium.reloadScripts();
       }
       if (branchIdx !== null) {
