@@ -12,8 +12,8 @@
  * - made functions (formerly scripts) callable across test cases
  * - made it compatible with Javscript strict mode - "use strict";
  * -- for that I've removed automatic access to stored variables (without using $). That affects mostly 'for' loop and right side of parameter assignments of 'call'. See SelBlocksGlobal.wiki.
- * - added some syntax sugar to Selenese: string{..}, object{..}, eval{..}, array[..]. See EnhancedSyntax.wiki.
- * - if/while/for, call, string{}, object{}, eval{} and array[] now recognise object "window" - just like getEval() did. 
+ * - added some syntax sugar to Selenese: string{..}, xpath{...}, object{..}, eval{..}, array[..]. See EnhancedSyntax.wiki.
+ * - if/while/for, call, string{}, xpath{...}, object{}, eval{} and array[] now recognise object "window" - just like getEval() did. 
  * -- therefore evalWithExpandedStoredVars, dropToLoop, returnFromFunction, parseArgs are now a part of Selenium.prototype
  * -- other helper functions are now a part of Selenium.prototype, where needed
  * - changed 'xyz instanceof Array' to Array.isArray(xyz); this may be needed to recognise Array instances passed from different global scope
@@ -2162,19 +2162,21 @@ function $X(xpath, contextNode, resultType) {
         if( match ) {
             return this.evalWithExpandedStoredVars( match[1] );
         }
-        // Match ...string{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
+        // Match ...string{...}....  or ...xpath{...}... Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables. If specified as xpath{...} then escape it for XPath.
         // Spaces in the following regex are here only to make it more readable; they get removed.
-        var spacedRegex= /^ ( ((?!string\{).)* )  string\{((.|\r?\n)+)\}  (([^}])*)$/;
+        var spacedRegex= /^ ( (?:(?!string\{)(?!xpath\{).)* )  (string|xpath)\{((.|\r?\n)+)\}  (([^}])*)$/;
         var regex= new RegExp( spacedRegex.source.replace( / /g, '') );
         match = value.match( regex );
         if( match ) {
             var prefix= match[1];
+            var type= match[2];
             var mainPart= match[3];
             var postfix= match[5];
-            LOG.debug( 'string{}: ' +
-                (prefix!=='' ? 'prefix: '+prefix+', ' : '')+
+            LOG.debug( type+ '{}: ' +
+                (prefix!=='' ? 'prefix: '+prefix+'; ' : '')+
+                'type: ' +type+ '; '+
                 'mainPart: ' +mainPart+
-                (postfix!=='' ? ', postfix: '+postfix : '')
+                (postfix!=='' ? '; postfix: '+postfix : '')
             );
             var evalResult= this.evalWithExpandedStoredVars( mainPart );
 
@@ -2184,7 +2186,10 @@ function $X(xpath, contextNode, resultType) {
             else {
                 evalResult= this.robustNullToken;//@TODO selite-misc-ide as a separate extension, or as a part of SelBlocks Global
             }
-            LOG.debug( '...string{}... transformed to: ' +prefix+evalResult+postfix);
+            LOG.debug( '..' +type+ '{}... transformed to: ' +prefix+evalResult+postfix);
+            if( type==='xpath' ) {
+                evalResult= SeLiteMisc.xpath_escape_quote(evalResult);
+            }
             return prefix+evalResult+postfix;
         }
         return originalPreprocessParameter.call( this, value );
