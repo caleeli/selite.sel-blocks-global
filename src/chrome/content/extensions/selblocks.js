@@ -2186,10 +2186,10 @@ function $X(xpath, contextNode, resultType) {
             else {
                 evalResult= this.robustNullToken;//@TODO selite-misc-ide as a separate extension, or as a part of SelBlocks Global
             }
-            LOG.debug( '..' +type+ '{}... transformed to: ' +prefix+evalResult+postfix);
             if( type==='xpath' ) {
                 evalResult= SeLiteMisc.xpath_escape_quote(evalResult);
             }
+            LOG.debug( '..' +type+ '{}... transformed to: ' +prefix+evalResult+postfix);
             return prefix+evalResult+postfix;
         }
         return originalPreprocessParameter.call( this, value );
