@@ -1658,8 +1658,8 @@ function $X(xpath, contextNode, resultType) {
         var window = this.browserbot.getCurrentWindow();
         // Firefox eval() doesn't return values of some expression strings, including
         // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'evalWithExpandedStoredVarsResult' first, and then I return it.
+        // I add () parenthesis, so that if the the expr contains multiple expressions separated by comma, then this uses the value of the last expression.
         // EXTENSION REVIEWERS: Use of eval is consistent with the Selenium extension itself.
-        // Scripted expressions run in the Selenium window, isolated from any web content.
         var result = eval( "var evalWithExpandedStoredVarsResult= " +expanded+ "; evalWithExpandedStoredVarsResult" );
         LOG.debug( 'result: ' +typeof result+ ': ' +SeLiteMisc.objectToString(result, 2) );
         return result;
@@ -1809,8 +1809,8 @@ function $X(xpath, contextNode, resultType) {
   }
 
   Selenium.prototype.assertCompilable= function(left, stmt, right, explanation) {
-    try {
-      this.evalWithExpandedStoredVars("function selblocksTemp() { " + left + stmt + right + " }");
+    try {//@TODO Peter disabled this, because it refuses back apostrophe notation - in override of preprocessParameter()
+      //this.evalWithExpandedStoredVars("function selblocksTemp() { " + left + stmt + right + " }");
     }
     catch (e) {
       throw new SyntaxError(fmtCmdRef(idxHere()) + " " + explanation + " '" + stmt +  "': " + e.message);
@@ -2122,17 +2122,15 @@ function $X(xpath, contextNode, resultType) {
     // and any-prefixstring{expression}postfix (including variations with empty prefix/postfix: any-prefixstring{expression} or string{expression}postfix or string{expression}).
     // Prefix and Postfix must not contain characters { and }. Prefix must not contain character = so that we
     // can use string{} in parameter values for SelBlocks' action call (string{} in a parameter value there doesn't allow any prefix/postfix).
-    Selenium.prototype.preprocessParameter = function(value) {
-        // @TODO @TODO @TODO Do we need string{..} at all? Standard Se preprocessParameter() supports multiple ${...} for stored vars.
-        // string{} was intended only so that there can be prefix and/or postfix around it: prefix... string{expression} postfix...
-        // But that can be accomplished with javascript{ 'prefix...' +(expression)+ 'postfix...' }
-        // But javascript{..} doesn't replace ${variableName}.
-        // Either way, replacing stored variables within Javascript statements/selectors using ${...}
-        // may confuse users, if the variable has a string value, because ${...} gets replaced by the value of the variable
-        // - they would need to put apostrophes around it (for XPath), or quotes/apostrophes around it (for Javascript).
+    // If the user wants to pass a backapostrophe to the result, double it - ``.
+    // The 3rd captured group - the postfix - is guaranteed not to end with # that would be just before the next occurrence of `..` (if any)
+    var enclosedByBackApostrophes= /((?:[^`]|``)*)`((?:[^`]|``)+)`((?:[^`#]|``|#(?!`))*)/g;
+    var doubledBackApostrophe= /``/g;
+    Selenium.prototype.preprocessParameter = function(whole) {
+        // javascript{..} doesn't replace ${variableName}.
         // Selenese ${variableName} requires {}, which is good because it separates it from the rest of the target/value,
         // so it's robust yet easy to use.
-        // string{ ... $xxx ... } replaces $xxx by the symbol/reference to the stored variable, so its typed and it doesn't need to be quote
+        // `..` replaces $xxx by the symbol/reference to the stored variable, so its typed and it doesn't need to be quote
         // (unless you're passing it to XPath).
         // 
         // string{ ... ${...} .... } doesn't work. No sure there's a need for it. If it worked substitituing as in other Selenese,
@@ -2146,13 +2144,41 @@ function $X(xpath, contextNode, resultType) {
            That limits the usage of string{}: you normally don't want string{} to yield an object/array. For such cases use object{...} or array[...]. E.g. passing an
              object as the second parameter to 'typeRandom' action (function doTypeRandom).
         */
-        LOG.debug('SelBlocksGlobal tail override of preprocessParameter(): ' +value );
-        // Match object{..} and evaluate as a definition of anonymous Javascript object. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
-        var match= value.match( /^\s*object(\{(.|\r?\n)+\})\s*$/ );
-        if( match ) {
-            return this.evalWithExpandedStoredVars( match[1] );
+        LOG.debug('SelBlocksGlobal head override of preprocessParameter(): ' +whole );
+        // Match `..` and #`..`. Replace ${xx} and $xx parts with respective stored variables. Evaluate. If it was #`..`, then escape it as an XPath string.
+        /** @type {boolean} Whether <code>result</code> contains a result containing result(s) of expression(s) enclosed between back apostrophes. I can't use result!==undefined to determine this, because <code>undefined</code> can be a valid result of a `..` (with no prefix and postfix).
+         * */
+        var containsEnclosedByBackApostrophes= false;
+        // I don't replace through a callback function - e.g. whole.replace( enclosedByBackApostrophes, function replacer(match, field) {..} ) - because that would always cast the replacement result as string.
+        // If expression is just `..` (i.e. it contains only one occurrence `..` with no prefix and no postfix), then I honour the result type of the evaluated expression and I don't cast it to string
+        var result;
+        enclosedByBackApostrophes.lastIndex=0;
+        for( var match; match= enclosedByBackApostrophes.exec(whole); ) {
+            // I have to replace double apostrophes here, because if the eval() result is not a string then I can't replace them afterwards
+            var prefix= match[1].replace( doubledBackApostrophe, '`' );
+            var expression= match[2].replace( doubledBackApostrophe, '`' );
+            var postfix= match[3].replace( doubledBackApostrophe, '`' );
+            var value= this.evalWithExpandedStoredVars( this.replaceVariables(expression) ); // evalWithExpandedStoredVars() calls expandStoredVars()
+            if( prefix.endsWith('#') ) {
+                value= SeLiteMisc.xpath_escape_quote( ''+value );
+                prefix= prefix.substring( 0, prefix.length-1 );
+            }
+            if( result!==undefined ) {
+                result+= prefix+value+postfix;
+            }
+            else {
+                // Following ensures that if there's no prefix neither postfix, and there is only one `..`, then its value is not cast to a string
+                result= prefix!=='' || postfix!==''
+                    ? prefix+value+postfix
+                    : value;
+            }
+            containsEnclosedByBackApostrophes= true;
         }
-        // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
+        if( !containsEnclosedByBackApostrophes ) {
+            result= originalPreprocessParameter.call( this, whole.replace( doubledBackApostrophe, '`' ) ); // That calls replaceVariables()
+        }
+        return result;
+        // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after array[ and ].
         var match= value.match( /^\s*array(\[(.|\r?\n)+\])\s*$/ );
         if( match ) {
             return this.evalWithExpandedStoredVars( match[1] );
@@ -2178,7 +2204,7 @@ function $X(xpath, contextNode, resultType) {
                 'mainPart: ' +mainPart+
                 (postfix!=='' ? '; postfix: '+postfix : '')
             );
-            var evalResult= this.evalWithExpandedStoredVars( mainPart );
+            var evalResult= this.evalWithExpandedStoredVars( mainPart ); // That calls expandStoredVars()
 
             if( evalResult!==null && evalResult!==undefined ) {
                 evalResult= '' +evalResult;
