@@ -2115,13 +2115,7 @@ function $X(xpath, contextNode, resultType) {
 (function() {
     var originalPreprocessParameter= Selenium.prototype.preprocessParameter;
     // This sets a head intercept of chrome/content/selenium-core/scripts/selenium-api.js
-    // This adds support for
-    // - quick object notation using object{ field: value... } - that can't be mixed with anything else in the value,
-    // it must be the only content passed as a value of a Se IDE command parameter
-    // - 'Quick Stored' - string{javascript-expression-here with $stored-var-name support}
-    // and any-prefixstring{expression}postfix (including variations with empty prefix/postfix: any-prefixstring{expression} or string{expression}postfix or string{expression}).
-    // Prefix and Postfix must not contain characters { and }. Prefix must not contain character = so that we
-    // can use string{} in parameter values for SelBlocks' action call (string{} in a parameter value there doesn't allow any prefix/postfix).
+    // This adds support for javascript expressions enclosed with ` and ` or #` and `.
     // If the user wants to pass a backapostrophe to the result, double it - ``.
     // The 3rd captured group - the postfix - is guaranteed not to end with # that would be just before the next occurrence of `..` (if any)
     var enclosedByBackApostrophes= /((?:[^`]|``)*)`((?:[^`]|``)+)`((?:[^`#]|``|#(?!`))*)/g;
@@ -2130,12 +2124,7 @@ function $X(xpath, contextNode, resultType) {
         // javascript{..} doesn't replace ${variableName}.
         // Selenese ${variableName} requires {}, which is good because it separates it from the rest of the target/value,
         // so it's robust yet easy to use.
-        // `..` replaces $xxx by the symbol/reference to the stored variable, so its typed and it doesn't need to be quote
-        // (unless you're passing it to XPath).
-        // 
-        // string{ ... ${...} .... } doesn't work. No sure there's a need for it. If it worked substitituing as in other Selenese,
-        // it could involve unexpected errors if ${variableName} were a number and later it would become a non-numeric string
-        // and if there were no quotes/apostrophes around it.
+        // `..` replaces $xxx by the symbol/reference to the stored variable, so its typed and it doesn't need to be quoted for Javascript processing.
         
         /** string{} - evaluate the expression and cast it as a string. Access stored variables using $xyz. If the stored
             variable is an object/array, you can access its fields - i.e. $object-var-name.fieldXYZ or $array-var-name[index].
@@ -2154,10 +2143,10 @@ function $X(xpath, contextNode, resultType) {
         var result;
         enclosedByBackApostrophes.lastIndex=0;
         for( var match; match= enclosedByBackApostrophes.exec(whole); ) {
-            // I have to replace double apostrophes here, because if the eval() result is not a string then I can't replace them afterwards
-            var prefix= match[1].replace( doubledBackApostrophe, '`' );
+            var prefix= originalPreprocessParameter.call( this, match[1].replace( doubledBackApostrophe, '`' ) );
+            // I have to replace double apostrophes here and not after eval(), because if the eval() result is not a string then I can't replace them afterwards
             var expression= match[2].replace( doubledBackApostrophe, '`' );
-            var postfix= match[3].replace( doubledBackApostrophe, '`' );
+            var postfix= originalPreprocessParameter.call( this, match[3].replace( doubledBackApostrophe, '`' ) );
             var value= this.evalWithExpandedStoredVars( this.replaceVariables(expression) ); // evalWithExpandedStoredVars() calls expandStoredVars()
             if( prefix.endsWith('#') ) {
                 value= SeLiteMisc.xpath_escape_quote( ''+value );
@@ -2178,46 +2167,5 @@ function $X(xpath, contextNode, resultType) {
             result= originalPreprocessParameter.call( this, whole.replace( doubledBackApostrophe, '`' ) ); // That calls replaceVariables()
         }
         return result;
-        // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after array[ and ].
-        var match= value.match( /^\s*array(\[(.|\r?\n)+\])\s*$/ );
-        if( match ) {
-            return this.evalWithExpandedStoredVars( match[1] );
-        }
-        // Match eval{...} and evaluate it as a Javascript expression. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
-        var match= value.match( /^\s*eval\{((.|\r?\n)+)\}\s*$/ );
-        if( match ) {
-            return this.evalWithExpandedStoredVars( match[1] );
-        }
-        // Match ...string{...}....  or ...xpath{...}... Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables. If specified as xpath{...} then escape it for XPath.
-        // Spaces in the following regex are here only to make it more readable; they get removed.
-        var spacedRegex= /^ ( (?:(?!string\{)(?!xpath\{).)* )  (string|xpath)\{((.|\r?\n)+)\}  (([^}])*)$/;
-        var regex= new RegExp( spacedRegex.source.replace( / /g, '') );
-        match = value.match( regex );
-        if( match ) {
-            var prefix= match[1];
-            var type= match[2];
-            var mainPart= match[3];
-            var postfix= match[5];
-            LOG.debug( type+ '{}: ' +
-                (prefix!=='' ? 'prefix: '+prefix+'; ' : '')+
-                'type: ' +type+ '; '+
-                'mainPart: ' +mainPart+
-                (postfix!=='' ? '; postfix: '+postfix : '')
-            );
-            var evalResult= this.evalWithExpandedStoredVars( mainPart ); // That calls expandStoredVars()
-
-            if( evalResult!==null && evalResult!==undefined ) {
-                evalResult= '' +evalResult;
-            }
-            else {
-                evalResult= this.robustNullToken;//@TODO selite-misc-ide as a separate extension, or as a part of SelBlocks Global
-            }
-            if( type==='xpath' ) {
-                evalResult= SeLiteMisc.xpath_escape_quote(evalResult);
-            }
-            LOG.debug( '..' +type+ '{}... transformed to: ' +prefix+evalResult+postfix);
-            return prefix+evalResult+postfix;
-        }
-        return originalPreprocessParameter.call( this, value );
     };
 })();
