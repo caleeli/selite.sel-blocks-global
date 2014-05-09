@@ -2115,7 +2115,8 @@ function $X(xpath, contextNode, resultType) {
 (function() {
     var originalPreprocessParameter= Selenium.prototype.preprocessParameter;
     // This sets a head intercept of chrome/content/selenium-core/scripts/selenium-api.js
-    // This adds support for javascript expressions enclosed with ` and ` or #` and `.
+    // This adds support for javascript expressions enclosed with ` and ` or #` and `
+    // as documented at https://code.google.com/p/selite/wiki/EnhancedSyntax.
     // If the user wants to pass a backapostrophe to the result, double it - ``.
     // The 3rd captured group - the postfix - is guaranteed not to end with # that would be just before the next occurrence of `..` (if any)
     var enclosedByBackApostrophes= /((?:[^`]|``)*)`((?:[^`]|``)+)`((?:[^`#]|``|#(?!`))*)/g;
