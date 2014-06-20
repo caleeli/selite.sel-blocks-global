@@ -4,7 +4,7 @@
   /* Function interception
   */
   $$.fn = {};
-
+  //@TODO It looks like functions intercepted by the following can't have any parameters. -Peter Kehl
   // execute the given function before each call of the specified function
   $$.fn.interceptBefore = function(targetObj, targetFnName, _fn) {
     var existing_fn = targetObj[targetFnName];
