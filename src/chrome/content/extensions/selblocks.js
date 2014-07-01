@@ -2114,12 +2114,13 @@ function $X(xpath, contextNode, resultType) {
 
 (function() {
     var originalPreprocessParameter= Selenium.prototype.preprocessParameter;
-    // This sets a head intercept of chrome/content/selenium-core/scripts/selenium-api.js
-    // This adds support for javascript expressions enclosed with ` and ` or #` and `
+    // This sets a head intercept of chrome/content/selenium-core/scripts/selenium-api.js. See EnhancedSyntax.wiki
+    var enclosedByEqualsBackApostrophes= /^=`(([^`]|``)*)`$/g; // For handling =`..`
+    // This adds support for javascript expressions enclosed with `..`, #`..` or @`..`
     // as documented at https://code.google.com/p/selite/wiki/EnhancedSyntax.
     // If the user wants to pass a backapostrophe to the result, double it - ``.
-    // The 3rd captured group - the postfix - is guaranteed not to end with # that would be just before the next occurrence of `..` (if any)
-    var enclosedByBackApostrophes= /((?:[^`]|``)*)`((?:[^`]|``)+)`((?:[^`#]|``|#(?!`))*)/g;
+    // The 3rd captured group - the postfix - is guaranteed not to end with # or @  that would be just before the next occurrence of `..` (if any)
+    var enclosedByBackApostrophes= /((?:[^`]|``)*)`((?:[^`]|``)+)`((?:[^`#@]|``|[#@](?!`))*)/g;
     var doubledBackApostrophe= /``/g;
     Selenium.prototype.preprocessParameter = function(whole) {
         // javascript{..} doesn't replace ${variableName}.
@@ -2135,38 +2136,70 @@ function $X(xpath, contextNode, resultType) {
              object as the second parameter to 'typeRandom' action (function doTypeRandom).
         */
         LOG.debug('SelBlocksGlobal head override of preprocessParameter(): ' +whole );
-        // Match `..` and #`..`. Replace ${xx} and $xx parts with respective stored variables. Evaluate. If it was #`..`, then escape it as an XPath string.
-        /** @type {boolean} Whether <code>result</code> contains a result containing result(s) of expression(s) enclosed between back apostrophes. I can't use result!==undefined to determine this, because <code>undefined</code> can be a valid result of a `..` (with no prefix and postfix).
-         * */
-        var containsEnclosedByBackApostrophes= false;
-        // I don't replace through a callback function - e.g. whole.replace( enclosedByBackApostrophes, function replacer(match, field) {..} ) - because that would always cast the replacement result as string.
-        // If expression is just `..` (i.e. it contains only one occurrence `..` with no prefix and no postfix), then I honour the result type of the evaluated expression and I don't cast it to string
-        var result;
-        enclosedByBackApostrophes.lastIndex=0;
-        for( var match; match= enclosedByBackApostrophes.exec(whole); ) {
-            var prefix= originalPreprocessParameter.call( this, match[1].replace( doubledBackApostrophe, '`' ) );
-            // I have to replace double apostrophes here and not after eval(), because if the eval() result is not a string then I can't replace them afterwards
-            var expression= match[2].replace( doubledBackApostrophe, '`' );
-            var postfix= originalPreprocessParameter.call( this, match[3].replace( doubledBackApostrophe, '`' ) );
-            var value= this.evalWithExpandedStoredVars( this.replaceVariables(expression) ); // evalWithExpandedStoredVars() calls expandStoredVars()
-            if( prefix.endsWith('#') ) {
-                value= SeLiteMisc.xpath_escape_quote( ''+value );
-                prefix= prefix.substring( 0, prefix.length-1 );
+        var numberOfBackApostrophes= 0;
+        for( var i=0; i<whole.length; i++ ) {
+            if( whole[i]==='`' ) {
+                numberOfBackApostrophes++;
             }
-            if( result!==undefined ) {
+        }
+        numberOfBackApostrophes%2===0 || SeLiteMisc.fail( "SelBlocksGlobal and its EnhancedSyntax doesn't allow Selenese parameters to contain an odd number of back apostrophes `. The parameter value was: " +whole );
+        // Match `..`, #`..`, =`..` and @`..`. Replace $xx parts with respective stored variables. Evaluate. If it was #`..`, then escape it as an XPath string. If it was @`...`, then make the rest a String object (rather than a string primitive) and store thesult of Javascript in field seLiteExtra on that String object.
+        // I don't replace through a callback function - e.g. whole.replace( enclosedByBackApostrophes, function replacer(match, field) {..} ) - because that would always cast the replacement result as string.
+        var match;
+        enclosedByEqualsBackApostrophes.lastIndex= 0;
+        if( match=enclosedByEqualsBackApostrophes.exec(whole) ) {
+            var expression= match[1].replace( doubledBackApostrophe, '`' );
+            return this.evalWithExpandedStoredVars( this.replaceVariables(expression) ); // evalWithExpandedStoredVars() calls expandStoredVars()
+        }
+        else {
+            enclosedByBackApostrophes.lastIndex=0;
+            var hasExtra= false; // Whether there was @`..` processed already
+            var extra; // The extra value: result of Javascript from @`..`
+            /** @type {boolean} Whether <code>result</code> contains a result of at least one `..` or its variations. If it is so, then this already replaced any doubled back apostrophes `` by one `..
+             * */
+            var alreadyProcessedDoubledBackApostrophes= false;
+            var result= '';
+            while( match= enclosedByBackApostrophes.exec(whole) ) {
+                var prefix= originalPreprocessParameter.call( this, match[1].replace( doubledBackApostrophe, '`' ) );
+                // I replace double back apostrophes `` here and not after eval(), because the expression to evaluate may depend on the strings containing single back apostrophe `
+                var expression= match[2].replace( doubledBackApostrophe, '`' );
+                var postfix= originalPreprocessParameter.call( this, match[3].replace( doubledBackApostrophe, '`' ) );
+                var value= this.evalWithExpandedStoredVars( this.replaceVariables(expression) );
+                !prefix.endsWith('=') || SeLiteMisc.fail( "You can only use =`...` with no prefix/postfix, but you've passed parameter value " +whole );
+                if( prefix.endsWith('@') ) {
+                    !hasExtra || SeLiteMisc.fail( "Selenese parameter contains multiple occurrences of @`...`, but it should have a maximum one. The parameter value was: " +whole );
+                    hasExtra= true;
+                    extra= value;
+                    value= '';
+                    prefix= prefix.substring( 0, prefix.length-1 );
+                }
+                else {
+                    if( prefix.endsWith('#') ) {
+                        value= SeLiteMisc.xpath_escape_quote( ''+value );
+                        prefix= prefix.substring( 0, prefix.length-1 );
+                    }
+                }
+                alreadyProcessedDoubledBackApostrophes= true;
                 result+= prefix+value+postfix;
             }
-            else {
-                // Following ensures that if there's no prefix neither postfix, and there is only one `..`, then its value is not cast to a string
-                result= prefix!=='' || postfix!==''
-                    ? prefix+value+postfix
-                    : value;
+            if( !alreadyProcessedDoubledBackApostrophes ) {
+                // There was no `..` neither its alternatives, so I haven't replaced double back apostrophes `` by singles ones `
+                result= originalPreprocessParameter.call( this, whole.replace( doubledBackApostrophe, '`' ) ); // That calls replaceVariables()
             }
-            containsEnclosedByBackApostrophes= true;
+            if( hasExtra ) {
+                result= new String(result);
+                result.seLiteExtra= extra;
+            }
+            return result;
         }
-        if( !containsEnclosedByBackApostrophes ) {
-            result= originalPreprocessParameter.call( this, whole.replace( doubledBackApostrophe, '`' ) ); // That calls replaceVariables()
+    };
+    var originalGetEval= Selenium.prototype.getEval;
+    Selenium.prototype.getEval = function getEval(script) {
+        // Parameter script should be a primitive string. If it is an object, it's a result of exactly one `..` (with no prefix & postfix) yeilding an object, or a result of @`..` (with an optional prefix/postfix) as processed by Selenium.prototype.preprocessParameter() as overriden by SelBlocksGlobal. Such parameters should not be used with getEval. Either when you use @`..` syntax in a Selenese parameter.
+        // See https://code.google.com/p/selite/wiki/EnhancedSyntax.
+        if( typeof script==='object' ) {
+            SeLiteMisc.fail( "You must call getEval with a primitive string. You've called it with an object of class " +SeLiteMisc.classNameOf(script) );
         }
-        return result;
+        return originalGetEval.call( this, script );
     };
 })();
