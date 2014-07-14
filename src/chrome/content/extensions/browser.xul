@@ -19,7 +19,7 @@
                 Components.classes['@mozilla.org/alerts-service;1'].
                     getService(Components.interfaces.nsIAlertsService).
                     showAlertNotification(null, title, msg, false, '', null);
-            } catch(e) {
+            } catch(e2) {
                 var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
                     getService(Components.interfaces.nsIWindowWatcher).
                     openWindow(null, 'chrome://global/content/alerts/alert.xul',
