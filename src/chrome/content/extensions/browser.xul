@@ -8,6 +8,8 @@
         //<![CDATA[
         "use strict";
         
+        // WARNING: Following doesn't show any popup (on Windows 7 Pro SP1, Firefox 30) if there is another add-on (or more of them) with similar popup (it won't show the popup for any of those add-ons!).
+        
         /** 1. I can't use alert() here (since there is no window object). So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup.
         2. On Linux (Fedora 20, Firefox 30) I can show a non-modal popup right from here. However, on Windows (Windows 7 Pro SP1, Firefox 30) such a popup doesn't show up. I have to show the popup at "sessionstore-windows-restored" event. Even then I have to delay the popup, otherwise it doesn't show up.
         3. I can't define functions within catch(..){..} clause below when in strict mode, therefore I encapsulate them in the following top-level function.*/
@@ -72,11 +74,11 @@
             Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         }
         catch(e) {
-            // Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
-            var title= "Missing dependencies for an add-on for Firefox and Selenium IDE";
-            var msg= 'Add-on SeLite SelBlocks Global requires SeLite Extension Sequencer, which is missing (or is not enabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
+            // Since the alert may show for a short moment and outside of Firefox, I make the title clarify that it's about a Firefox add-on.
+            var title= "An add-on for Firefox and Selenium IDE is missing dependencies";
+            var msg= 'Add-on SeLite SelBlocks Global requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
             postponeAlert( msg, title );
-\        }
+        }
         //]]>
     </html:script>
 </overlay>
