@@ -7,26 +7,76 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
+        
+        /** 1. I can't use alert() here (since there is no window object). So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup.
+        2. On Linux (Fedora 20, Firefox 30) I can show a non-modal popup right from here. However, on Windows (Windows 7 Pro SP1, Firefox 30) such a popup doesn't show up. I have to show the popup at "sessionstore-windows-restored" event. Even then I have to delay the popup, otherwise it doesn't show up.
+        3. I can't define functions within catch(..){..} clause below when in strict mode, therefore I encapsulate them in the following top-level function.*/
+        function postponeAlert( msg, title ) {
+            function myObserver() {
+              this.register();
+            }
+            var observerTopicId= "sessionstore-windows-restored";
+
+            // For some reason the observer is notified twice (Firefox 30, Windows 7 Pro SP1). So I only handle the first notification.
+            var observerNotifiedAlready= false;
+
+            myObserver.prototype = {
+              observe: function(subject, topic, data) {
+                 if( observerNotifiedAlready ) {
+                    return;
+                 }
+                observerNotifiedAlready= true;
+
+                var registrationTime= Date.now();
+                var timerHandler= {
+                    notify: function(passedTimer) {
+                        var timeSinceRegistration= Date.now()-registrationTime;
+                        if( timeSinceRegistration<9000 ) { // This must be 4000 or more for Windows 7 Pro SP1.
+                            return;
+                        }
+                        // Following works on Windows and Linux
+                        try {
+                            Components.classes['@mozilla.org/alerts-service;1'].
+                                getService(Components.interfaces.nsIAlertsService).
+                                showAlertNotification(null, title, msg, false, '', null);
+                        } catch(e) {
+                            var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
+                                getService(Components.interfaces.nsIWindowWatcher).
+                                openWindow(null, 'chrome://global/content/alerts/alert.xul',
+                                  '_blank', 'chrome,titlebar=no,popup=yes', null);
+                            win.arguments = [null, title, msg, false, ''];
+                        }
+                        passedTimer.cancel();
+                    }
+                };
+                var timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
+                timer.initWithCallback( timerHandler, 1010, 3/*TYPE_REPEATING_PRECISE_CAN_SKIP*/ );
+                this.unregister();
+              },
+              register: function() {
+                var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+                observerService.addObserver(this, observerTopicId, false);
+              },
+              unregister: function() {
+                var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+                observerService.removeObserver(this, observerTopicId );
+              }
+            };
+
+            var observer= new myObserver();
+            observer.register();
+        }
+        
         try {
             // Test presence of Extension Sequencer
             Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         }
         catch(e) {
-            // I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup. Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
+            // Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
             var title= "Missing dependencies for an add-on for Firefox and Selenium IDE";
             var msg= 'Add-on SeLite SelBlocks Global requires SeLite Extension Sequencer, which is missing (or is not enabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
-            try {
-                Components.classes['@mozilla.org/alerts-service;1'].
-                    getService(Components.interfaces.nsIAlertsService).
-                    showAlertNotification(null, title, msg, false, '', null);
-            } catch(e2) {
-                var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
-                    getService(Components.interfaces.nsIWindowWatcher).
-                    openWindow(null, 'chrome://global/content/alerts/alert.xul',
-                      '_blank', 'chrome,titlebar=no,popup=yes', null);
-                win.arguments = [null, title, msg, false, ''];
-            }
-        }
+            postponeAlert( msg, title );
+\        }
         //]]>
     </html:script>
 </overlay>
