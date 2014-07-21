@@ -1,72 +1,28 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<overlay id="selblocks_global_extension_loader_overlay"
-         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        
-        // WARNING: Following doesn't show any popup (on Windows 7 Pro SP1, Firefox 30) if there is another add-on (or more of them) with similar popup (it won't show the popup for any of those add-ons!).
+        var thisAddOnID= 'selblocks-global@selite.googlecode.com';
         
         /** 1. I can't use alert() here (since there is no window object). So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup.
-        2. On Linux (Fedora 20, Firefox 30) I can show a non-modal popup right from here. However, on Windows (Windows 7 Pro SP1, Firefox 30) such a popup doesn't show up. I have to show the popup at "sessionstore-windows-restored" event. Even then I have to delay the popup, otherwise it doesn't show up.
-        3. I can't define functions within catch(..){..} clause below when in strict mode, therefore I encapsulate them in the following top-level function.*/
-        function postponeAlert( msg, title ) {
-            function myObserver() {
-              this.register();
+        */
+        function showAlert( msg, title ) {
+            // Following works on Windows and Linux
+            try {
+                Components.classes['@mozilla.org/alerts-service;1'].
+                    getService(Components.interfaces.nsIAlertsService).
+                    showAlertNotification(null, title, msg, false, '', null);
+            } catch(e) {
+                var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
+                    getService(Components.interfaces.nsIWindowWatcher).
+                    openWindow(null, 'chrome://global/content/alerts/alert.xul',
+                      '_blank', 'chrome,titlebar=no,popup=yes', null);
+                win.arguments = [null, title, msg, false, ''];
             }
-            var observerTopicId= "sessionstore-windows-restored";
-
-            // For some reason the observer is notified twice (Firefox 30, Windows 7 Pro SP1). So I only handle the first notification.
-            var observerNotifiedAlready= false;
-
-            myObserver.prototype = {
-              observe: function(subject, topic, data) {
-                 if( observerNotifiedAlready ) {
-                    return;
-                 }
-                observerNotifiedAlready= true;
-
-                var registrationTime= Date.now();
-                var timerHandler= {
-                    notify: function(passedTimer) {
-                        var timeSinceRegistration= Date.now()-registrationTime;
-                        if( timeSinceRegistration<9000 ) { // This must be 4000 or more for Windows 7 Pro SP1.
-                            return;
-                        }
-                        // Following works on Windows and Linux
-                        try {
-                            Components.classes['@mozilla.org/alerts-service;1'].
-                                getService(Components.interfaces.nsIAlertsService).
-                                showAlertNotification(null, title, msg, false, '', null);
-                        } catch(e) {
-                            var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
-                                getService(Components.interfaces.nsIWindowWatcher).
-                                openWindow(null, 'chrome://global/content/alerts/alert.xul',
-                                  '_blank', 'chrome,titlebar=no,popup=yes', null);
-                            win.arguments = [null, title, msg, false, ''];
-                        }
-                        passedTimer.cancel();
-                    }
-                };
-                var timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-                timer.initWithCallback( timerHandler, 1010, 3/*TYPE_REPEATING_PRECISE_CAN_SKIP*/ );
-                this.unregister();
-              },
-              register: function() {
-                var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-                observerService.addObserver(this, observerTopicId, false);
-              },
-              unregister: function() {
-                var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-                observerService.removeObserver(this, observerTopicId );
-              }
-            };
-
-            var observer= new myObserver();
-            observer.register();
         }
         
         try {
@@ -74,10 +30,25 @@
             Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         }
         catch(e) {
-            // Since the alert may show for a short moment and outside of Firefox, I make the title clarify that it's about a Firefox add-on.
-            var title= "An add-on for Firefox and Selenium IDE is missing dependencies";
-            var msg= 'Add-on SeLite SelBlocks Global requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
-            //postponeAlert( msg, title );
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            AddonManager.getAllAddons(
+            function( addons ) {
+                // I sort the add-ons alphabetically by ID. I can show only one alert at any moment, so I do that in
+                // the first SeLite add-on (when sorted by ID in the alphabetical order). See https://bugzilla.mozilla.org/show_bug.cgi?id=1039869
+                var seliteAddOnIDs= [];
+                for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of..)
+                    if( addons[i].isActive && addons[i].id.indexOf('@selite.googlecode.com')>0 ) {
+                        seliteAddOnIDs.push( addons[i].id );
+                    }
+                }
+                seliteAddOnIDs.sort();
+                if( seliteAddOnIDs[0]===thisAddOnID ) {
+                    // Since the alert may show for a short moment and outside of Firefox, I make the title clarify that it's about a Firefox add-on.
+                    var title= "Firefox and Selenium IDE add-on is missing a dependency";
+                    var msg= 'SeLite requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
+                    showAlert( msg, title );
+                }
+            } );
         }
         //]]>
     </html:script>
