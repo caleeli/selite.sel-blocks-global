@@ -117,7 +117,7 @@ function $X(xpath, contextNode, resultType) {
     }
     var i;
     for (i = 0; i < this.length; i++) {
-      if (values[i] == this) {
+      if (values[i]===this) {
         return true;
       }
     }
@@ -166,7 +166,7 @@ function $X(xpath, contextNode, resultType) {
 
     if ( Array.isArray(t1.constructor) ) {
       for (i = 0; i < t1.length; i++) {
-        if (t1[i] == this) {
+        if (t1[i]===this) {
           return t2[i];
         }
       }
@@ -191,7 +191,7 @@ function $X(xpath, contextNode, resultType) {
           LOG.error( msg );
           throw new Error(msg);
       }
-      if( editor.app.testSuite.tests.length==0 ) {
+      if( editor.app.testSuite.tests.length===0 ) {
           var msg= "SelBlocks error: in testCaseIdx(), bad editor.app.testSuite.tests.length==0.";
           LOG.error( msg );
           throw new Error(msg);
@@ -284,7 +284,7 @@ function $X(xpath, contextNode, resultType) {
       assert( lastSlashIndex<globIdxValue.length-1, 'globIdxValue must contain "/" and not as the last character.');
       var beforeSlash= globIdxValue.substring( 0, globIdxValue.lastIndexOf('/') );
       var beforeSlashNumber= new Number( beforeSlash );
-      assert( beforeSlash == ''+beforeSlashNumber, 'The part after "/" must be numeric.');
+      assert( ''+beforeSlash===''+beforeSlashNumber, 'The part after "/" must be numeric.');
       var result= beforeSlashNumber.valueOf();
       assert( result>=0 && result<editor.app.testSuite.tests.length, 'result not a valid index into editor.app.testSuite.tests.');
       return result;
@@ -1947,7 +1947,7 @@ function $X(xpath, contextNode, resultType) {
       if (node.xml) { return node.xml; }
       throw "XMLSerializer is not supported or can't serialize " + node;
     }
-  }
+  } // end of XmlReader
 
 
   function JSONReader()
@@ -1966,10 +1966,23 @@ function $X(xpath, contextNode, resultType) {
       $$.LOG.info("Reading from: " + fileUrl);
 
       var fileObj = xmlHttpReq.responseText;
+      $$.LOG.debug('evaluating JSON file' );
+      
+      //@TODO This doesn't work well. Have
+      /* try {
+       *    varsets= JSON.parse(fileObj);
+       * }
+       * catch(e) {
+       *    varsets= eval( 'var result=' +fileObj+ '; result' )
+       * }
+       */
       varsets = eval(fileObj);
+      
+      // @TODO re-write this. It doesn't make sense.
       if (varsets === null || varsets.length === 0) {
         throw new Error("A JSON object could not be loaded, or the file was empty.");
       }
+      $$.LOG.info('Has successfully read the JSON file');
 
       curVars = 0;
       varNames = attrNamesFor(varsets[0]);
@@ -2040,17 +2053,16 @@ function $X(xpath, contextNode, resultType) {
       var json = uneval(obj);
       return json.substring(1, json.length-1);
     }
-  }
+  } // end of JSONReader
 
   function urlFor(filepath) {
     var URL_PFX = "file://";
-    var url = filepath;
     if (filepath.substring(0, URL_PFX.length).toLowerCase() !== URL_PFX) {
-      testCasePath = testCase.file.path.replace("\\", "/", "g");
+      var testCasePath = testCase.file.path.replace("\\", "/", "g");
       var i = testCasePath.lastIndexOf("/");
-      url = URL_PFX + testCasePath.substr(0, i) + "/" + filepath;
+      filepath = URL_PFX + testCasePath.substr(0, i) + "/" + filepath;
     }
-    return url;
+    return filepath;
   }
 
 
@@ -2193,12 +2205,17 @@ function $X(xpath, contextNode, resultType) {
             return result;
         }
     };
+    
     var originalGetEval= Selenium.prototype.getEval;
     Selenium.prototype.getEval = function getEval(script) {
         // Parameter script should be a primitive string. If it is an object, it's a result of exactly one `..` (with no prefix & postfix) yeilding an object, or a result of @`..` (with an optional prefix/postfix) as processed by Selenium.prototype.preprocessParameter() as overriden by SelBlocksGlobal. Such parameters should not be used with getEval. Either when you use @`..` syntax in a Selenese parameter.
         // See https://code.google.com/p/selite/wiki/EnhancedSyntax.
         if( typeof script==='object' ) {
-            SeLiteMisc.fail( "You must call getEval with a primitive string. You've called it with an object of class " +SeLiteMisc.classNameOf(script) );
+            var msg= "You must call getEval with a primitive (non-object) string";
+            msg+= script.seLiteExtra!==undefined
+                ? " and without extra parameter passed through enhanced syntax @`...`"
+                : ". But you've called it with an object of class " +SeLiteMisc.classNameOf(script);
+            SeLiteMisc.fail( msg );
         }
         return originalGetEval.call( this, script );
     };

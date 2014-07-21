@@ -77,7 +77,7 @@
             // Since the alert may show for a short moment and outside of Firefox, I make the title clarify that it's about a Firefox add-on.
             var title= "An add-on for Firefox and Selenium IDE is missing dependencies";
             var msg= 'Add-on SeLite SelBlocks Global requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
-            postponeAlert( msg, title );
+            //postponeAlert( msg, title );
         }
         //]]>
     </html:script>

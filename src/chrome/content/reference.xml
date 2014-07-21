@@ -110,6 +110,9 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <comment>End of the matching <code>foreach</code>.</comment>
 </function>
 <function name="loadVars">
+    <comment>Deprecated. Use <code>loadXmlVars</code> instead.</comment>
+</function>
+<function name="loadXmlVars">
     <param name="xmlfile">File path or a URI to an xml file to load. Value sets is loaded from &lt;vars&gt; element(s).</param>
     <param name="selector">Boolean condition to select a set of values from the XML. Optional; if not present,
         then the XML must have exactly one set of variables - one element &lt;vars&gt;.
@@ -122,14 +125,25 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         See original reference at <a href="http://refactoror.wikia.com/wiki/Selblocks_Reference">http://refactoror.wikia.com/wiki/Selblocks_Reference</a> for more.
     </comment>
 </function>
+<function name="loadJsonVars">
+    <comment>Not sure how exactly to use. See loadXmlVars.</comment>
+</function>
 <function name="forXml">
-    <param name="xmlpath">File path or a URI to an xml file.</param>
+    <param name="xmlpath">File path or a file:// URL to an XML file. You can enter path to the file, relative to location of the current test case. (You can use Windows or Unix folder separators \ or /). In order to pass a full absolute path, enter file://...</param>
     <comment>An XML-based loop. (I think that) on each iteration, it loads a set of variables from the XML
     (one set of variables per one element &lt;vars&gt;). Then it runs any statement(s) up to the matching <code>endForXml</code>.
     </comment>
 </function>
 <function name="endForXml">
     <comment>End of the matching <code>forXml</code>.</comment>
+</function>
+<function name="forJson">
+    <param name="jsonpath">File path or a file:// URL to a JSON file. You can enter path to the file, relative to location of the current test case. (You can use Windows or Unix folder separators \ or /). In order to pass a full absolute path, enter file://...</param>
+    <comment>This doesn't work well and I believe it didn't work well in SelBlocsk either. Developers: see @TODO in selblocks.js. Doc. once fixed: A JSON-based loop. (I think that) on each iteration, it loads a set of variables from the given file which should contain them in JSON notation. Then it runs any statement(s) up to the matching <code>endForXml</code>.
+    </comment>
+</function>
+<function name="endForJson">
+    <comment>End of the matching <code>forJson</code>.</comment>
 </function>
 <function name="continue">
   <comment>Jump back to top of the current (innermost active) loop (either <code>for</code>, <code>foreach</code>, <code>while</code>, <code>forJson</code> or <code>forXml</code>) for next iteration, if any.</comment>
