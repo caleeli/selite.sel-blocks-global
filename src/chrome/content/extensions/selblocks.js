@@ -240,7 +240,7 @@ function $X(xpath, contextNode, resultType) {
      */
     function localIdx( globIdxValue ) {
       // Can't use assert() here, since assert indirectly calls fmtCmdRef() which calls localIdx() - recursion
-      SeLiteMisc.ensureType( globIdxValue, 'string', 'globIdxValue must be a string' );
+      SeLiteMisc.ensureType( globIdxValue, 'string', 'globIdxValue' );
       if( typeof globIdxValue !== 'string' ) {
           SeLiteMisc.fail( 'globIdxValue must be a string, but got ' +(typeof globIdxValue)+ ': ' +globIdxValue );
           LOG.error( msg );
@@ -2165,7 +2165,7 @@ function $X(xpath, contextNode, resultType) {
         }
         else {
             enclosedByBackApostrophes.lastIndex=0;
-            var hasExtra= false; // Whether there was @`..` processed already
+            var hasExtra= false; // Whether there is @`..`
             var extra; // The extra value: result of Javascript from @`..`
             /** @type {boolean} Whether <code>result</code> contains a result of at least one `..` or its variations. If it is so, then this already replaced any doubled back apostrophes `` by one `..
              * */
