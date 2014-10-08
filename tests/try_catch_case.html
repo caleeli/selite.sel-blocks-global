@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>try_catch_case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">try_catch_case</td></tr>
+</thead><tbody>
+<tr>
+	<td>getEval</td>
+	<td>storedVars.exceptionCaught= undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>throw &quot;An exception&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>true</td>
+	<td>exceptionCaught</td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>if( !storedVars.exceptionCaught ) throw &quot;The above try...catch should have caught an exception&quot;</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>storedVars.assertCaught= undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>true</td>
+	<td>assertCaught</td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>if( !storedVars.assertCaught ) throw &quot;The above try...catch should have caught an assert failure&quot;</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>storedVars.verifyCaught= undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>true</td>
+	<td>verifyNotCaught</td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>throw &quot;verification failure shoud not trigger catch handler in&nbsp;&nbsp;try...catch&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>if( !storedVars.verifyNotCaught ) throw &quot;The above try...catch should have not caught a verification failure&quot;</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
