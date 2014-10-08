@@ -207,8 +207,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="catch">
-    <param name="errorTextOrRegExp">Error message to catch - either the exaxt text, or a regular expression between //.</param>
-    <comment>It starts a <code>catch</code> part of its <code>try..catch..finally..endTry</code> block. If there was a matching exception, then its steps are run (until <code>finally</code> or matching <code>endTry</code>).
+    <param name="errorTextOrRegExp">Error message to catch, optional. If present, it must be a Javascript expression that evaluates to a string or to a regular expression, matching the whole error message or its substring. E.g. a string quoted within '..' or "..." , or a regular expression within /.../.</param>
+    <comment>It starts a <code>catch</code> part of its <code>try..catch..finally..endTry</code> block. If there was a matching exception, then its steps are run (until <code>finally</code> or matching <code>endTry</code>). There can be maximum one <code>catch</code> for any <code>try</code>.
     </comment>
 </function>
 <function name="finally">
