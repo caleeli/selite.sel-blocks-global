@@ -1571,10 +1571,11 @@ function $X(xpath, contextNode, resultType) {
             storedVars._result= _result;
           testCase= popped.testCase;
           testCase.debugContext.testCase= testCase;
+          testCase.debugContext.debugIndex = localIdx( popped.returnIdx );
           editor.selDebugger.pause();
           //selenium.reset(); // This doesn't help
 
-          originalCommandError.call( this, result ); // I've restored this.commandError *before* calling originalCommandError(), because if this was a deeper function call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
+          originalCommandError.call( this, result ); // I've restored this.commandError above *before* calling originalCommandError(), because: if this was a deeper function call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
           //@TODO setNextCommand(??)??
       };
         
