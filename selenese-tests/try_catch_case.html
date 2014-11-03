@@ -123,7 +123,42 @@
 	<td>if( !storedVars.verifyNotCaught ) throw &quot;The above try...catch should have not caught a verification failure&quot;</td>
 	<td></td>
 </tr>
-
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>storedVars.nonExistingElementOperationCaught= undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>nonExistingElementLocator</td>
+	<td></td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>true</td>
+	<td>nonExistingElementOperationCaught</td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>if( !storedVars.nonExistingElementOperationCaught) throw &quot;Operation on a non-existing element should trigger catch handler in&nbsp;&nbsp;try...catch&quot;</td>
+	<td></td>
+</tr>
 </tbody></table>
 </body>
 </html>
