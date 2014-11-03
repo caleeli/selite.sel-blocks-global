@@ -330,7 +330,7 @@ function $X(xpath, contextNode, resultType) {
   var callStack = null;  // command execution stack
 
   // the idx of the currently executing command
-  // SelBlocksGlobal added param relativeShift and made it return a global, cross-test case index
+  // SelBlocksGlobal added param relativeShift and made it return a global, cross-test case index, rather than local (test-case specific) index
   /** @param {number} [relativeShift=0] Relative shift to the current command's position
    *  @return {string} global command index
    * */
@@ -497,7 +497,7 @@ function $X(xpath, contextNode, resultType) {
     callStack = new Stack();
     callStack.push({ blockStack: new Stack() }); // top-level execution state
 
-    $$.tcf = { nestingLevel: -1 };
+    $$.tcf = { nestingLevel: -1 }; // tcf=try..catch..finally
 
     if( testCaseDebugContextWasIntercepted===undefined ) {
     // customize flow control logic
@@ -1055,23 +1055,25 @@ function $X(xpath, contextNode, resultType) {
   {
     var tryState = bubbleToTryBlock(Stack.isTryBlock);
     var tryDef = blkDefFor(tryState);
-    $$.LOG.debug("error encountered while: " + tryState.execPhase);
-    if (hasUnspentCatch(tryState)) {
-      if (this.isMatchingCatch(err, tryDef.catchIdx)) {
-        // an expected kind of error has been caught
-        $$.LOG.info("@" + (idxHere(+1)) + ", error has been caught" + fmtCatching(tryState));
-        tryState.hasCaught = true;
-        tryState.execPhase = "catching";
-        storedVars._error = err;
-        $$.tcf.bubbling = null;
-        setNextCommand(tryDef.catchIdx);
-        return true;
-      }
+    if( tryState ) {
+        $$.LOG.debug("error encountered while: " + tryState.execPhase);
+        if (hasUnspentCatch(tryState)) {
+          if (this.isMatchingCatch(err, tryDef.catchIdx)) {
+            // an expected kind of error has been caught
+            $$.LOG.info("@" + (idxHere(+1)) + ", error has been caught" + fmtCatching(tryState));
+            tryState.hasCaught = true;
+            tryState.execPhase = "catching";
+            storedVars._error = err;
+            $$.tcf.bubbling = null;
+            setNextCommand(tryDef.catchIdx);
+            return true;
+          }
+        }
     }
     // error not caught .. instigate bubbling
     $$.LOG.debug("error not caught, bubbling error: '" + err.message + "'");
     $$.tcf.bubbling = { mode: "error", error: err, srcIdx: idxHere() };
-    if (hasUnspentFinally(tryState)) {
+    if (tryState && hasUnspentFinally(tryState)) {
       $$.LOG.info("Bubbling suspended while finally block runs");
       tryState.execPhase = "finallying";
       tryState.hasFinaled = true;
