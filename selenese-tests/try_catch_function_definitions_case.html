@@ -4,13 +4,18 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
-<title>try_catch_case</title>
+<title>try_catch_function_definitions_case</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
 <tr><td rowspan="1" colspan="3">try_catch_case</td></tr>
 </thead><tbody>
+<tr>
+	<td>function</td>
+	<td>try_catch_by_error_type</td>
+	<td></td>
+</tr>
 <tr>
 	<td>getEval</td>
 	<td>storedVars.exceptionCaught= undefined</td>
@@ -157,6 +162,28 @@
 <tr>
 	<td>getEval</td>
 	<td>if( !storedVars.nonExistingElementOperationCaught) throw &quot;Operation on a non-existing element should trigger catch handler in&nbsp;&nbsp;try...catch&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td>try_catch_by_error_type</td>
+	<td></td>
+</tr>
+<!---->
+<!--Simple function that throws an error. To be called from within try..catch.-->
+<tr>
+	<td>function</td>
+	<td>throwAnError</td>
+	<td></td>
+</tr>
+<tr>
+	<td>throw</td>
+	<td>'An error'</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td>throwAnError</td>
 	<td></td>
 </tr>
 </tbody></table>
