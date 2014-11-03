@@ -15,13 +15,11 @@
       }
       this.continueTestWhenConditionIsTrue();
     } catch (e) {
-      var handlerAttrs = $$.fn.getInterceptAttrs();
       var originalMessage= e.message; // Selenium IDE generates 'false' message for failed assertions, and those then would only match catch | 'false' (or similar). 
       if( e.message==='false' ) {
           e.message= this.currentCommand.command + " | " + this.currentCommand.target + " | " + this.currentCommand.value + " |";
       }
-      var isManaged = handlerAttrs.handleError(e);
-      if (isManaged) {
+      if( /*isManaged*/$$.fn.getInterceptTop() && $$.fn.getInterceptTop().attrs.handleError(e) ) {
         var message= originalMessage!=='false'
             ? '. The message: ' +originalMessage
             : '';
