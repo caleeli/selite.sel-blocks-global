@@ -519,13 +519,13 @@ function $X(xpath, contextNode, resultType) {
 ) ();
 
   // get the blockStack for the currently active callStack
-  function activeBlockStack() {
+  var activeBlockStack= function activeBlockStack() {
     return callStack.top().blockStack;
-  }
+  };
 
     // ================================================================================
     // Assemble block relationships and symbol locations
-    function compileSelBlocks()
+    var compileSelBlocks= function compileSelBlocks()
   {
       symbols= {}; // Let's clear symbols
       // Currently, this is called multiple times when Se IDE runs the whole test suite
@@ -559,7 +559,7 @@ function $X(xpath, contextNode, resultType) {
       // Application.prototype.showTestCaseFromSuite(givenTestCase) calls this.setTestCase(givenTestCase.content)
       editor.app.showTestCaseFromSuite( editor.app.getTestSuite().tests[testCaseOriginalIndex] );
       testCase.debugContext.testCase= testCase;
-  }
+  };
   // end of compileSelBlocks()
   
     // SelBlocksGlobal: Following three functions were inside compileSelBlocksTestCase(), but that doesn't follow JS strict mode. Two of them didn't have to be closures. assertBlockIsPending() used to be a closure, now it received parameter lexStack and is not a closure anymore.
@@ -579,7 +579,7 @@ function $X(xpath, contextNode, resultType) {
     
   // SelBlocksGlobal factored the following out of SelBlocks' compileSelBlocks(), to make 'testCase' not refer
   // to global testCase
-  function compileSelBlocksTestCase( testCase ) {
+  var compileSelBlocksTestCase= function compileSelBlocksTestCase( testCase ) {
     // SelBlocksGlobal: I set lexStack here, since it's local stack per testCase (and only used during compilation)
     var lexStack = new Stack();
     
@@ -769,12 +769,12 @@ function $X(xpath, contextNode, resultType) {
       }
       throw new SyntaxError(cmdErrors.join("; "));
     }
-  } // end of compileSelBlocksTestCase()
+  }; // end of compileSelBlocksTestCase()
 
   // --------------------------------------------------------------------------------
 
   // prevent jumping in-to and/or out-of loop/function/try blocks
-  function assertIntraBlockJumpRestriction(fromIdx, toIdx) {
+  var assertIntraBlockJumpRestriction= function assertIntraBlockJumpRestriction(fromIdx, toIdx) {
     var fromRange = findBlockRange(fromIdx);
     var toRange   = findBlockRange(toIdx);
     if (fromRange || toRange) {
@@ -784,10 +784,10 @@ function $X(xpath, contextNode, resultType) {
       assert(fromRange && fromRange.equals(toRange), msg 
         + ". You cannot jump into, or out of: loops, functions, or try blocks.");
     }
-  }
+  };
 
   // ascertain in which, if any, block that an locusIdx occurs
-  function findBlockRange(locusIdx) {
+  var findBlockRange= function findBlockRange(locusIdx) {
     var idx;
     for (idx = locusIdx-1; idx >= 0; idx--) {
       var blk = blkDefAt(idx);
@@ -803,10 +803,10 @@ function $X(xpath, contextNode, resultType) {
       }
     }
     // return as undefined (no enclosing block at all)
-  }
+  };
 
   // pin-point in which sub-block, (try, catch or finally), that the idx occurs
-  function isolateTcfRange(idx, tryDef) {
+  var isolateTcfRange= function isolateTcfRange(idx, tryDef) {
     // assumptions: idx is known to be between try & endTry, and catch always precedes finally
     var RANGES = [
       { ifr: tryDef.finallyIdx, ito: tryDef.endIdx,     desc: "finally", desc2: "end" }
@@ -826,10 +826,10 @@ function $X(xpath, contextNode, resultType) {
         return new CmdRange(rng.ifr, rng.ito, desc);
       }
     }
-  }
+  };
 
   // represents a range of script lines
-  function CmdRange(topIdx, bottomIdx, desc) {
+  var CmdRange= function CmdRange(topIdx, bottomIdx, desc) {
     this.topIdx = topIdx;
     this.bottomIdx = bottomIdx;
     this.desc = desc;
@@ -839,19 +839,19 @@ function $X(xpath, contextNode, resultType) {
     this.fmt = function fmt() {
       return " @[" + (this.topIdx+1) + "-" + (this.bottomIdx+1) + "]";
     };
-  }
+  };
 
   // ==================== SelBlocks Commands (Custom Selenium Actions) ====================
 
   var iexpr = Object.create($$.InfixExpressionParser);
 
   // validate declared variable/parameter name (without $ prefix)
-  function validateName(name, desc) {
+  var validateName= function validateName(name, desc) {
     var match = name.match(/^[a-zA-Z]\w*$/);
     if (!match) {
       notifyFatal("Invalid character(s) in " + desc + " name: '" + name + "'");
     }
-  }
+  };
 
   Selenium.prototype.doLabel = function doLabel() {
     // noop
@@ -862,9 +862,9 @@ function $X(xpath, contextNode, resultType) {
   /** @param {string} expression
    *  @return {string} expression, with any $xyz replaced by storedVars.xyz
    * */
-  function expandStoredVars( expression ) {
+  var expandStoredVars= function expandStoredVars( expression ) {
       return expression.replace( expandStoredVarsRegex, 'storedVars.$1' );
-  }
+  };
     
   // Skip the next N commands (default is 1)
   Selenium.prototype.doSkipNext = function doSkipNext(spec)
@@ -1148,7 +1148,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // unwind the blockStack, and callStack (ie, aborting functions), until reaching the given criteria
-  function bubbleToTryBlock(_hasCriteria) {
+  var bubbleToTryBlock= function bubbleToTryBlock(_hasCriteria) {
     if ($$.tcf.nestingLevel < 0) {
       $$.LOG.warn("bubbleToTryBlock() called outside of any try nesting");
     }
@@ -1160,16 +1160,16 @@ function $X(xpath, contextNode, resultType) {
       tryState = unwindToBlock(_hasCriteria);
     }
     return tryState;
-  }
+  };
 
   // unwind the blockStack until reaching the given criteria
-  function unwindToBlock(_hasCriteria) {
+  var unwindToBlock= function unwindToBlock(_hasCriteria) {
     var tryState = activeBlockStack().unwindTo(_hasCriteria);
     if (tryState) {
       $$.LOG.debug("unwound to: " + fmtTry(tryState));
     }
     return tryState;
-  }
+  };
 
   // resume or conclude command/error bubbling
   Selenium.prototype.reBubble= function reBubble() {
@@ -1222,7 +1222,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // determine if bubbling is possible from this point outward
-  function isBubblable(_isContextBlockType) {
+  var isBubblable= function isBubblable(_isContextBlockType) {
     var canBubble = ($$.tcf.nestingLevel > -1);
     if (canBubble) {
       var blkState = activeBlockStack().findEnclosing(isTryOrContextBlockType);
@@ -1237,16 +1237,16 @@ function $X(xpath, contextNode, resultType) {
       }
       return Stack.isTryBlock(stackFrame);
     }
-  }
+  };
 
-  function hasUnspentCatch(tryState) {
+  var hasUnspentCatch= function hasUnspentCatch(tryState) {
     return (blkDefFor(tryState).catchIdx && !tryState.hasCaught);
-  }
-  function hasUnspentFinally(tryState) {
+  };
+  var hasUnspentFinally= function hasUnspentFinally(tryState) {
     return (blkDefFor(tryState).finallyIdx && !tryState.hasFinaled);
-  }
+  };
 
-  function fmtTry(tryState)
+  var fmtTry= function fmtTry(tryState)
   {
     var tryDef = blkDefFor(tryState);
     return (
@@ -1255,9 +1255,9 @@ function $X(xpath, contextNode, resultType) {
       + ", " + tryState.execPhase + ".."
       + " " + $$.tcf.nestingLevel + "n"
     );
-  }
+  };
 
-  function fmtCatching(tryState)
+  var fmtCatching= function fmtCatching(tryState)
   {
     if (!tryState) {
       return "";
@@ -1269,7 +1269,7 @@ function $X(xpath, contextNode, resultType) {
     var tryDef = blkDefFor(tryState);
     var catchDcl = localCommand( tryDef.catchIdx ).target;
     return " :: " + bbl + catchDcl;
-  }
+  };
   
   // ================================================================================
   Selenium.prototype.doWhile = function doWhile(condExpr)
@@ -1321,7 +1321,7 @@ function $X(xpath, contextNode, resultType) {
     iterateLoop();
   };
 
-  function parseVarNames(initStmt) {
+  var parseVarNames= function parseVarNames(initStmt) {
     var varNames = [];
     if (initStmt) {
       var vInits = iexpr.splitList(initStmt, ",");
@@ -1332,7 +1332,7 @@ function $X(xpath, contextNode, resultType) {
       }
     }
     return varNames;
-  }
+  };
   
   // ================================================================================
   Selenium.prototype.doForeach = function doForeach(varName, valueExpr)
@@ -1464,7 +1464,7 @@ function $X(xpath, contextNode, resultType) {
   // commands that *may* contain ${} variables. Bottom line, we can't just keep a copy
   // of parameters and then iterate back to the first command inside the body of a loop.
 
-  function enterLoop(_validateFunc, _initFunc, _condFunc, _iterFunc)
+  var enterLoop= function enterLoop(_validateFunc, _initFunc, _condFunc, _iterFunc)
   {
     assertRunning();
     var loopState;
@@ -1489,8 +1489,8 @@ function $X(xpath, contextNode, resultType) {
       setNextCommand(blkDefHere().endIdx);
     }
     // else continue into body of loop
-  }
-  function iterateLoop()
+  };
+  var iterateLoop= function iterateLoop()
   {
     assertRunning();
     assertActiveScope(blkDefHere().beginIdx);
@@ -1504,7 +1504,7 @@ function $X(xpath, contextNode, resultType) {
       // jump back to top of loop
       setNextCommand(blkDefHere().beginIdx);
     }
-  }
+  };
 
   // ================================================================================
   Selenium.prototype.doContinue = function doContinue(condExpr) {
@@ -1724,7 +1724,7 @@ function $X(xpath, contextNode, resultType) {
     }
     return args;
   };
-  function initVarState(names) { // new -> storedVars(names)
+  var initVarState= function initVarState(names) { // new -> storedVars(names)
     if (names) {
       var i;
       for (i = 0; i < names.length; i++) {
@@ -1733,16 +1733,16 @@ function $X(xpath, contextNode, resultType) {
         }
       }
     }
-  }
-  function getVarStateFor(args) { // storedVars(prop-set) -> new prop-set
+  };
+  var getVarStateFor= function getVarStateFor(args) { // storedVars(prop-set) -> new prop-set
     var savedVars = {};
     var varname;
     for (varname in args) {
       savedVars[varname] = storedVars[varname];
     }
     return savedVars;
-  }
-  function getVarState(names) { // storedVars(names) -> new prop-set
+  };
+  var getVarState= function getVarState(names) { // storedVars(names) -> new prop-set
     var savedVars = {};
     if (names) {
       var i;
@@ -1751,14 +1751,14 @@ function $X(xpath, contextNode, resultType) {
       }
     }
     return savedVars;
-  }
-  function setVars(args) { // prop-set -> storedVars
+  };
+  var setVars= function setVars(args) { // prop-set -> storedVars
     var varname;
     for (varname in args) {
       storedVars[varname] = args[varname];
     }
-  }
-  function restoreVarState(savedVars) { // prop-set --> storedVars
+  };
+  var restoreVarState= function restoreVarState(savedVars) { // prop-set --> storedVars
     var varname;
     for (varname in savedVars) {
       if (savedVars[varname] === undefined) {
@@ -1768,31 +1768,31 @@ function $X(xpath, contextNode, resultType) {
         storedVars[varname] = savedVars[varname];
       }
     }
-  }
+  };
 
   // ========= error handling =========
 
-  function SelblocksError(idx, message) {
+  var SelblocksError= function SelblocksError(idx, message) {
     this.name = "SelblocksError";
     this.message = (message || "");
     this.idx = idx;
-  }
+  };
   SelblocksError.prototype = Error.prototype;
 
   // TBD: make into throwable Errors
-  function notifyFatalErr(msg, err) {
+  var notifyFatalErr= function notifyFatalErr(msg, err) {
     $$.LOG.error("Error " + msg);
     $$.LOG.logStackTrace(err);
     throw err;
-  }
-  function notifyFatal(msg) {
+  };
+  var notifyFatal= function notifyFatal(msg) {
     var err = new Error(msg);
     $$.LOG.error("Error " + msg);
     $$.LOG.logStackTrace(err);
     throw err;
-  }
-  function notifyFatalCmdRef(idx, msg) { notifyFatal(fmtCmdRef(idx) + msg); }
-  function notifyFatalHere(msg) {
+  };
+  var notifyFatalCmdRef= function notifyFatalCmdRef(idx, msg) { notifyFatal(fmtCmdRef(idx) + msg); };
+  var notifyFatalHere= function notifyFatalHere(msg) {
     // This may be called before testCase is set
     var commandRef;
     if( testCase===undefined ) {
@@ -1806,19 +1806,19 @@ function $X(xpath, contextNode, resultType) {
       commandRef= fmtCmdRef( globIdx( Math.max(stepLocalIdx, 0) ) )+ ': ';
     }
     notifyFatal( commandRef+msg );
-  }
+  };
 
-  function assertCmd(idx, cond, msg) { if (!cond) { notifyFatalCmdRef(idx, msg); } }
-  function assert(cond, msg)         { if (!cond) { notifyFatalHere(msg); } }
+  var assertCmd= function assertCmd(idx, cond, msg) { if (!cond) { notifyFatalCmdRef(idx, msg); } };
+  var assert= function assert(cond, msg)         { if (!cond) { notifyFatalHere(msg); } };
   // TBD: can we at least show result of expressions?
-  function assertRunning() {
+  var assertRunning= function assertRunning() {
     assert(testCase.debugContext.started, " Command is only valid in a running script,"
         + " i.e., cannot be executed via double-click, or via 'Execute this command'.");
-  }
-  function assertActiveScope(expectedIdx) {
+  };
+  var assertActiveScope= function assertActiveScope(expectedIdx) {
     var activeIdx = activeBlockStack().top().idx;
     assert(activeIdx === expectedIdx, " unexpected command, active command was " + fmtCmdRef(activeIdx));
-  }
+  };
 
   Selenium.prototype.assertCompilable= function assertCompilable(left, stmt, right, explanation) {
     try {//@TODO Peter disabled this, because it refuses back apostrophe notation - in override of preprocessParameter()
@@ -1829,34 +1829,34 @@ function $X(xpath, contextNode, resultType) {
     }
   };
 
-  function fmtCurCmd() {
+  var fmtCurCmd= function fmtCurCmd() {
     return fmtCmdRef(idxHere());
-  }
-  function fmtCmdRef(idx) {
+  };
+  var fmtCmdRef= function fmtCmdRef(idx) {
     var test= localCase(idx);
     var commandIdx= localIdx(idx);
 
     return "@" +test.filename+ ': ' +(commandIdx+1) + ": " + fmtCommand( test.commands[commandIdx] );
-  }
-  function fmtCommand(cmd) {
+  };
+  var fmtCommand= function fmtCommand(cmd) {
     var c = cmd.command;
     if (cmd.target) { c += "|" + cmd.target; }
     if (cmd.value)  { c += "|" + cmd.value; }
     return '[' + c + ']';
-  }
+  };
 
   //================= Utils ===============
 
   // Elapsed time, optional duration provides expiration
-  function IntervalTimer(msDuration) {
+  var IntervalTimer= function IntervalTimer(msDuration) {
     this.msStart = +new Date();
     this.getElapsed = function getElapsed() { return (+new Date() - this.msStart); };
     this.hasExpired = function hasExpired() { return (msDuration && this.getElapsed() > msDuration); };
     this.reset = function reset() { this.msStart = +new Date(); };
-  }
+  };
 
   // produce an iterator object for the given array
-  function arrayIterator(arrayObject) {
+  var arrayIterator= function arrayIterator(arrayObject) {
     return new function arrayIteratorClosure(ary) {
       var cur = 0;
       this.hasNext = function hasNext() { return (cur < ary.length); };
@@ -1868,7 +1868,7 @@ function $X(xpath, contextNode, resultType) {
   // Adapted from the datadriven plugin
   // http://web.archive.org/web/20120928080130/http://wiki.openqa.org/display/SEL/datadriven
 
-  function XmlReader()
+  var XmlReader= function XmlReader()
   {
     var varsets = null;
     var varNames = null;
@@ -1959,10 +1959,10 @@ function $X(xpath, contextNode, resultType) {
       if (node.xml) { return node.xml; }
       throw "XMLSerializer is not supported or can't serialize " + node;
     }
-  } // end of XmlReader
+  }; // end of XmlReader
 
 
-  function JSONReader()
+  var JSONReader= function JSONReader()
   {
     var varsets = null;
     var varNames = null;
@@ -2065,9 +2065,9 @@ function $X(xpath, contextNode, resultType) {
       var json = uneval(obj);
       return json.substring(1, json.length-1);
     }
-  } // end of JSONReader
+  }; // end of JSONReader
 
-  function urlFor(filepath) {
+  var urlFor= function urlFor(filepath) {
     var URL_PFX = "file://";
     if (filepath.substring(0, URL_PFX.length).toLowerCase() !== URL_PFX) {
       var testCasePath = testCase.file.path.replace("\\", "/", "g");
@@ -2075,7 +2075,7 @@ function $X(xpath, contextNode, resultType) {
       filepath = URL_PFX + testCasePath.substr(0, i) + "/" + filepath;
     }
     return filepath;
-  }
+  };
 
 
   // ==================== File Reader ====================
