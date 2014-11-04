@@ -48,7 +48,7 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>if( !storedVars.exceptionCaught ) throw &quot;The above try...catch should have caught an exception&quot;</td>
+	<td>if( !storedVars.exceptionCaught ) throw &quot;try_catch_function_definitions_case: The first try...catch should have caught an exception&quot;</td>
 	<td></td>
 </tr>
 <!---->
@@ -84,7 +84,7 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>if( !storedVars.assertCaught ) throw &quot;The above try...catch should have caught an assert failure&quot;</td>
+	<td>if( !storedVars.assertCaught ) throw &quot;try_catch_function_definitions_case: The second try...catch should have caught an assert failure&quot;</td>
 	<td></td>
 </tr>
 <!---->
@@ -115,7 +115,7 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>throw &quot;verification failure shoud not trigger catch handler in&nbsp;&nbsp;try...catch&quot;</td>
+	<td>throw &quot;try_catch_function_definitions_case: verification failure in the third try...catch&quot;</td>
 	<td></td>
 </tr>
 <tr>
@@ -125,7 +125,7 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>if( !storedVars.verifyNotCaught ) throw &quot;The above try...catch should have not caught a verification failure&quot;</td>
+	<td>if( !storedVars.verifyNotCaught ) throw &quot;try_catch_function_definitions_case: The third try...catch should have not caught a verification failure&quot;</td>
 	<td></td>
 </tr>
 <!---->
@@ -161,11 +161,17 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>if( !storedVars.nonExistingElementOperationCaught) throw &quot;Operation on a non-existing element should trigger catch handler in&nbsp;&nbsp;try...catch&quot;</td>
+	<td>if( !storedVars.nonExistingElementOperationCaught) throw &quot;try_catch_function_definitions_case: Operation on a non-existing element should trigger catch handler in fourth try...catch&quot;</td>
 	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>
+	<td>try_catch_by_error_type</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>call</td>
 	<td>try_catch_by_error_type</td>
 	<td></td>
 </tr>
@@ -184,6 +190,42 @@
 <tr>
 	<td>endFunction</td>
 	<td>throwAnError</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>storedVars.errorThrownFromFunction= undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>throwAnError</td>
+	<td></td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>true</td>
+	<td>errorThrownFromFunction</td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>if( !storedVars.errorThrownFromFunction) throw new Error( &quot;try_catch_function_definitions_case: Call to function throwAnError in the fifth try..catch should have thrown an error that should have been caught.&quot; );</td>
 	<td></td>
 </tr>
 </tbody></table>
