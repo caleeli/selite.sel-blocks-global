@@ -1384,7 +1384,7 @@ function $X(xpath, contextNode, resultType) {
   Selenium.prototype.loadVars= function loadVars(reader, desc, filepath, selector)
   {
     if (selector) {
-      assertCompilable("", selector, ";", "Invalid selector condition");
+      this.assertCompilable("", selector, ";", "Invalid selector condition");
     }
     reader.load(filepath);
     reader.next(); // read first varset and set values on storedVars
@@ -1530,7 +1530,7 @@ function $X(xpath, contextNode, resultType) {
   {
     assertRunning();
     if (condExpr) {
-      assertCompilable("", condExpr, ";", "Invalid condition");
+      this.assertCompilable("", condExpr, ";", "Invalid condition");
     }
     if (this.transitionBubbling(Stack.isLoopBlock)) {
       return;
