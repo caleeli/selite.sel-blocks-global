@@ -192,7 +192,7 @@ function $X(xpath, contextNode, resultType) {
           throw new Error(msg);
       }
       if( editor.app.testSuite.tests.length===0 ) {
-          var msg= "SelBlocks error: in testCaseIdx(), bad editor.app.testSuite.tests.length==0.";
+          var msg= "SelBlocks error: in testCaseIdx(), bad editor.app.testSuite.tests.length===0.";
           LOG.error( msg );
           throw new Error(msg);
       }
@@ -532,7 +532,7 @@ function $X(xpath, contextNode, resultType) {
       // - once per each test case. No harm in that, only a bit of wasted CPU.
 
       //alert( 'testCase===editor.suiteTreeView.getCurrentTestCase(): ' +(testCase===editor.suiteTreeView.getCurrentTestCase()) ); // --> false!
-      //alert( 'testCase==editor.getTestCase(): ' +(testCase==editor.getTestCase()) ); //--> true!
+      //alert( 'testCase===editor.getTestCase(): ' +(testCase===editor.getTestCase()) ); //--> true!
       var testCaseOriginal= testCase;
       var testCaseOriginal= editor.getTestCase();
       var testCaseOriginalIndex= -1;
@@ -1184,7 +1184,7 @@ function $X(xpath, contextNode, resultType) {
         finally { $$.tcf.bubbling = null; }
       }
     }
-    else { // mode == "command"
+    else { // mode === "command"
       if (isBubblable()) {
         $$.LOG.debug("command-bubbling continuing...");
         this.bubbleCommand($$.tcf.bubbling.srcIdx, $$.tcf.bubbling._isStopCriteria);
@@ -1207,7 +1207,7 @@ function $X(xpath, contextNode, resultType) {
         $$.tcf.bubbling = { mode: "command", srcIdx: idxHere(), _isStopCriteria: _isContextBlockType };
         return true;
       }
-      // mode == "command"
+      // mode === "command"
       $$.LOG.debug("Command suspension " + fmtCmdRef($$.tcf.bubbling.srcIdx)
         + ", replaced with " + fmtCmdRef(idxHere()));
       $$.tcf.bubbling.srcIdx = idxHere();
@@ -1225,18 +1225,18 @@ function $X(xpath, contextNode, resultType) {
   var isBubblable= function isBubblable(_isContextBlockType) {
     var canBubble = ($$.tcf.nestingLevel > -1);
     if (canBubble) {
-      var blkState = activeBlockStack().findEnclosing(isTryOrContextBlockType);
+      var blkState = activeBlockStack().findEnclosing(
+        //- determine if stackFrame is a try-block or the given type of block
+        function isTryOrContextBlockType(stackFrame) {
+          if (_isContextBlockType && _isContextBlockType(stackFrame)) {
+            return true;
+          }
+          return Stack.isTryBlock(stackFrame);
+        }
+      );
       return (blkDefFor(blkState).nature === "try");
     }
     return canBubble;
-
-    //- determine if stackFrame is a try-block or the given type of block
-    function isTryOrContextBlockType(stackFrame) {
-      if (_isContextBlockType && _isContextBlockType(stackFrame)) {
-        return true;
-      }
-      return Stack.isTryBlock(stackFrame);
-    }
   };
 
   var hasUnspentCatch= function hasUnspentCatch(tryState) {
@@ -1562,7 +1562,7 @@ function $X(xpath, contextNode, resultType) {
       var _result= storedVars._result;
       storedVars= popped.savedVars; //restoreVarState( popped.savedVars );
       storedVars._result= _result;
-      assert( testCase==popped.testCase, "The popped testCase is different." ); // Not sure why, but this seems to be true.
+      assert( testCase===popped.testCase, "The popped testCase is different." ); // Not sure why, but this seems to be true.
     }
     else {
       // Support $stored-variablename, just like string{} and getQs, storeQs...
