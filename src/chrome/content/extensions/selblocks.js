@@ -305,6 +305,12 @@ function $X(xpath, contextNode, resultType) {
        return editor.app.testSuite.tests[ localCaseIdxPart(globIdxValue) ].content;
       */
     }
+    /** @return {Object} Command structure for given global index
+     * */
+    var localCommand= function localCommand( globIdxValue ) {
+        return localCase( globIdxValue ).commands[ localIdx(globIdxValue) ];
+    };
+    
     /** This serves to generate and compare keys in symbols[] for label commands
      *  @param string label name
      *  @param TestCase test case where the label is; optional - using testCase by default
@@ -485,7 +491,7 @@ function $X(xpath, contextNode, resultType) {
   //  * before each testcase runs in a running testsuite
   // TBD: skip during single command execution
 
-  // SelBlocksGlobal: leavning the original indentation here, to make mergies easier:
+  // SelBlocksGlobal: leaving the original indentation here, to make mergies easier:
   $$.fn.interceptAfter(Selenium.prototype, "reset", function()
   {
     $$.LOG.trace("In tail intercept :: Selenium.reset()");
@@ -975,7 +981,7 @@ function $X(xpath, contextNode, resultType) {
 
     // log an advisory about the active catch block
     if (tryDef.catchIdx) {
-      var errDcl = testCase.commands[ localIdx(tryDef.catchIdx) ].target;
+      var errDcl = localCommand( tryDef.catchIdx ).target;
       $$.LOG.debug(tryName + " catchable: " + (errDcl || "ANY"));
     }
 
@@ -1126,7 +1132,7 @@ function $X(xpath, contextNode, resultType) {
 
   //- error message matcher
   Selenium.prototype.isMatchingCatch= function(e, catchIdx) {
-    var errDcl = testCase.commands[ localIdx(catchIdx) ].target;
+    var errDcl = localCommand( catchIdx ).target;
     if (!errDcl) {
       return true; // no error specified means catch all errors
     }
@@ -1258,7 +1264,7 @@ function $X(xpath, contextNode, resultType) {
       bbl = "@" + ($$.tcf.bubbling.srcIdx+1) + " ";
     }
     var tryDef = blkDefFor(tryState);
-    var catchDcl = testCase.commands[ localIdx(tryDef.catchIdx) ].target;
+    var catchDcl = localCommand( tryDef.catchIdx ).target;
     return " :: " + bbl + catchDcl;
   }
   
