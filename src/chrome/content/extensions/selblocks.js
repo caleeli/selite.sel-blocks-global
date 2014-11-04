@@ -1890,7 +1890,7 @@ function $X(xpath, contextNode, resultType) {
       }
 
       curVars = 0;
-      varNames = attrNamesFor(varsets[0]);
+      varNames = XmlReader.attrNamesFor(varsets[0]);
       return varNames;
     };
 
@@ -1905,22 +1905,23 @@ function $X(xpath, contextNode, resultType) {
         return;
       }
       varsetIdx++;
-      $$.LOG.debug(varsetIdx + ") " + serializeXml(varsets[curVars]));  // log each name & value
+      $$.LOG.debug(varsetIdx + ") " + XmlReader.serialize(varsets[curVars]));  // log each name & value
 
-      var expected = countAttrs(varsets[0]);
-      var found = countAttrs(varsets[curVars]);
+      var expected = XmlReader.countAttrs(varsets[0]);
+      var found = XmlReader.countAttrs(varsets[curVars]);
       if (found !== expected) {
         throw new Error("Inconsistent <testdata> at <vars> element #" + varsetIdx
           + "; expected " + expected + " attributes, but found " + found + "."
           + " Each <vars> element must have the same set of attributes."
         );
       }
-      setupStoredVars(varsets[curVars]);
+      XmlReader.setupStoredVars(varsets, varsetIdx, varsets[curVars]);
       curVars++;
     };
+  }; // end of XmlReader
 
-    //- retrieve the names of each attribute on the given XML node
-    function attrNamesFor(node) {
+  //- retrieve the names of each attribute on the given XML node
+  XmlReader.attrNamesFor= function attrNamesFor(node) {
       var attrNames = [];
       var varAttrs = node.attributes; // NamedNodeMap
       var v;
@@ -1928,15 +1929,13 @@ function $X(xpath, contextNode, resultType) {
         attrNames.push(varAttrs[v].nodeName);
       }
       return attrNames;
-    }
-
-    //- determine how many attributes are present on the given node
-    function countAttrs(node) {
+  };
+  //- determine how many attributes are present on the given node
+  XmlReader.countAttrs= function countAttrs(node) {
       return node.attributes.length;
-    }
-
-    //- set selenium variables from given XML attributes
-    function setupStoredVars(node) {
+  };
+  //- set selenium variables from given XML attributes
+  XmlReader.setupStoredVars= function setupStoredVars(varsets, varsetIdx, node) {
       var varAttrs = node.attributes; // NamedNodeMap
       var v;
       for (v = 0; v < varAttrs.length; v++) {
@@ -1949,19 +1948,16 @@ function $X(xpath, contextNode, resultType) {
         }
         storedVars[attr.nodeName] = attr.nodeValue;
       }
-    }
-
-    //- format the given XML node for display
-    function serializeXml(node) {
+  };
+  //- format the given XML node for display
+  XmlReader.serialize= function serialize(node) {
       if (XMLSerializer !== "undefined") {
         return (new XMLSerializer()).serializeToString(node) ;
       }
       if (node.xml) { return node.xml; }
       throw "XMLSerializer is not supported or can't serialize " + node;
-    }
-  }; // end of XmlReader
-
-
+  };
+  
   var JSONReader= function JSONReader()
   {
     var varsets = null;
@@ -1997,7 +1993,7 @@ function $X(xpath, contextNode, resultType) {
       $$.LOG.info('Has successfully read the JSON file');
 
       curVars = 0;
-      varNames = attrNamesFor(varsets[0]);
+      varNames = JSONReader.attrNamesFor(varsets[0]);
       return varNames;
     };
 
@@ -2012,42 +2008,43 @@ function $X(xpath, contextNode, resultType) {
         return;
       }
       varsetIdx++;
-      $$.LOG.debug(varsetIdx + ") " + serializeJson(varsets[curVars]));  // log each name & value
+      $$.LOG.debug(varsetIdx + ") " + JSONReader.serialize(varsets[curVars]));  // log each name & value
 
-      var expected = countAttrs(varsets[0]);
-      var found = countAttrs(varsets[curVars]);
+      var expected = JSONReader.countAttrs(varsets[0]);
+      var found = JSONReader.countAttrs(varsets[curVars]);
       if (found !== expected) {
         throw new Error("Inconsistent JSON object #" + varsetIdx
           + "; expected " + expected + " attributes, but found " + found + "."
           + " Each JSON object must have the same set of attributes."
         );
       }
-      setupStoredVars(varsets[curVars]);
+      JSONReader.setupStoredVars(varsets, varsetIdx, varsets[curVars]);
       curVars++;
     };
+  }; // end of JSONReader
 
-    //- retrieve the names of each attribute on the given object
-    function attrNamesFor(obj) {
+  //- retrieve the names of each attribute on the given object
+  JSONReader.attrNamesFor= function attrNamesFor(obj) {
       var attrNames = [];
       var attrName;
       for (attrName in obj) {
         attrNames.push(attrName);
       }
       return attrNames;
-    }
+  };
 
-    //- determine how many attributes are present on the given obj
-    function countAttrs(obj) {
+  //- determine how many attributes are present on the given obj
+  JSONReader.countAttrs= function countAttrs(obj) {
       var n = 0;
       var attrName;
       for (attrName in obj) {
         n++;
       }
       return n;
-    }
+  };
 
     //- set selenium variables from given JSON attributes
-    function setupStoredVars(obj) {
+  JSONReader.setupStoredVars= function setupStoredVars(varsets, varsetIdx, obj) {
       var attrName;
       for (attrName in obj) {
         if (null === varsets[0][attrName]) {
@@ -2058,15 +2055,14 @@ function $X(xpath, contextNode, resultType) {
         }
         storedVars[attrName] = obj[attrName];
       }
-    }
+  };
 
-    //- format the given JSON object for display
-    function serializeJson(obj) {
+  //- format the given JSON object for display
+  JSONReader.serialize= function serialize(obj) {
       var json = uneval(obj);
       return json.substring(1, json.length-1);
-    }
-  }; // end of JSONReader
-
+  };
+    
   var urlFor= function urlFor(filepath) {
     var URL_PFX = "file://";
     if (filepath.substring(0, URL_PFX.length).toLowerCase() !== URL_PFX) {
