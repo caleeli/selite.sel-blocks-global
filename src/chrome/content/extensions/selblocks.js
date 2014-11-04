@@ -960,7 +960,7 @@ function $X(xpath, contextNode, resultType) {
   // throw the given Error
   Selenium.prototype.doThrow = function doThrow(err) {
     err = this.evalWithExpandedStoredVars(err);
-    // @TODO? cascade check that .constructor.name==='Error' or its parent constructor
+    // @TODO consider using SeLiteMisc.isInstance().
     if (!(err instanceof Error)) {
       err = new SelblocksError(idxHere(), err);
     }
@@ -2100,6 +2100,7 @@ function $X(xpath, contextNode, resultType) {
     }
     requester.open("GET", absUrl, false); // synchronous (we don't want selenium to go ahead)
     try {
+      //following generates 'syntax error' in Browser Console. See ThirdPartyIssues.wiki > https://bugzilla.mozilla.org/show_bug.cgi?id=1031985
       requester.send(null);
     } catch(e) {
       throw new Error("Error while fetching URL '" + absUrl + "':: " + e);
