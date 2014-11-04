@@ -833,10 +833,10 @@ function $X(xpath, contextNode, resultType) {
     this.topIdx = topIdx;
     this.bottomIdx = bottomIdx;
     this.desc = desc;
-    this.equals = function CmdRangeEquals(cmdRange) {
+    this.equals = function equals(cmdRange) {
       return (cmdRange && cmdRange.topIdx === this.topIdx && cmdRange.bottomIdx === this.bottomIdx);
     };
-    this.fmt = function CmdRangeFmt() {
+    this.fmt = function fmt() {
       return " @[" + (this.topIdx+1) + "-" + (this.bottomIdx+1) + "]";
     };
   }
@@ -1850,17 +1850,17 @@ function $X(xpath, contextNode, resultType) {
   // Elapsed time, optional duration provides expiration
   function IntervalTimer(msDuration) {
     this.msStart = +new Date();
-    this.getElapsed = function IntervalTimerGetElapsed() { return (+new Date() - this.msStart); };
-    this.hasExpired = function IntervalTimerHasExpired() { return (msDuration && this.getElapsed() > msDuration); };
-    this.reset = function IntervalTimerReset() { this.msStart = +new Date(); };
+    this.getElapsed = function getElapsed() { return (+new Date() - this.msStart); };
+    this.hasExpired = function hasExpired() { return (msDuration && this.getElapsed() > msDuration); };
+    this.reset = function reset() { this.msStart = +new Date(); };
   }
 
   // produce an iterator object for the given array
   function arrayIterator(arrayObject) {
     return new function arrayIteratorClosure(ary) {
       var cur = 0;
-      this.hasNext = function arrayIteratorHasNext() { return (cur < ary.length); };
-      this.next = function arrayIteratorNext() { if (this.hasNext()) { return ary[cur++]; } };
+      this.hasNext = function hasNext() { return (cur < ary.length); };
+      this.next = function next() { if (this.hasNext()) { return ary[cur++]; } };
     }(arrayObject);
   };
 
@@ -1876,7 +1876,7 @@ function $X(xpath, contextNode, resultType) {
     var varsetIdx = 0;
 
     // load XML file and return the list of var names found in the first <VARS> element
-    this.load = function XmlReaderLoad(filepath)
+    this.load = function load(filepath)
     {
       var fileReader = new FileReader();
       var fileUrl = urlFor(filepath);
@@ -1894,11 +1894,11 @@ function $X(xpath, contextNode, resultType) {
       return varNames;
     };
 
-    this.EOF = function XmlReaderEOF() {
+    this.EOF = function EOF() {
       return (curVars === null || curVars >= varsets.length);
     };
 
-    this.next = function XmlReaderNext()
+    this.next = function next()
     {
       if (this.EOF()) {
         $$.LOG.error("No more <vars> elements to read after element #" + varsetIdx);
@@ -1970,7 +1970,7 @@ function $X(xpath, contextNode, resultType) {
     var varsetIdx = 0;
 
     // load JSON file and return the list of var names found in the first object
-    this.load = function JSONReaderLoad(filepath)
+    this.load = function load(filepath)
     {
       var fileReader = new FileReader();
       var fileUrl = urlFor(filepath);
@@ -2001,11 +2001,11 @@ function $X(xpath, contextNode, resultType) {
       return varNames;
     };
 
-    this.EOF = function JSONReaderEOF() {
+    this.EOF = function EOF() {
       return (curVars === null || curVars >= varsets.length);
     };
 
-    this.next = function JSONReaderNext()
+    this.next = function next()
     {
       if (this.EOF()) {
         $$.LOG.error("No more JSON objects to read after object #" + varsetIdx);
