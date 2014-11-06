@@ -11,7 +11,8 @@
 <thead>
 <tr><td rowspan="1" colspan="3">try_catch_finally_case</td></tr>
 </thead><tbody>
-<!--This is intended to fail. Selenium IDE should stop playing and it should not be in a 'paused' mode.-->
+<!--This is intended to fail. Selenium IDE should stop playing the test case and it should not be in a 'paused' mode.-->
+<!--This is for/similar to https://github.com/refactoror/SelBlocks/issues/11 and https://github.com/refactoror/SelBlocks/issues/12-->
 <tr>
 	<td>try</td>
 	<td></td>
@@ -22,17 +23,12 @@
 	<td>'throw_test'</td>
 	<td></td>
 </tr>
-<tr>
-	<td>catch</td>
-	<td>'do not match the error'</td>
-	<td></td>
-</tr>
+<!--this is missing 'catch' by purpose-->
 <tr>
 	<td>endTry</td>
 	<td></td>
 	<td></td>
 </tr>
-<!--TODO: add JS that checks that the error was raised and clears the error. If the error wasn't raised, then it raises an error indicating that.-->
 </tbody></table>
 </body>
 </html>
