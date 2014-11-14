@@ -15,7 +15,7 @@
       }
       this.continueTestWhenConditionIsTrue();
     } catch (e) {
-      var originalMessage= e.message; // Selenium IDE generates 'false' message for failed assertions, and those then would only match catch | 'false' (or similar). 
+      var originalMessage= e.message; // Selenium IDE generates 'false' message for failed assertions, and those then would only match catch | 'false' |. Following makes them catchable by the actual assertion message.
       if( e.message==='false' ) {
           e.message= this.currentCommand.command + " | " + this.currentCommand.target + " | " + this.currentCommand.value + " |";
       }
