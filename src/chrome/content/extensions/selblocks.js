@@ -994,8 +994,12 @@ function $X(xpath, contextNode, resultType) {
     if ($$.tcf.nestingLevel === 0) {
       // enable special command handling
       var self= this;
-      $$.fn.interceptPush(editor.selDebugger.runner.IDETestLoop.prototype, "resume",
-          $$.handleAsTryBlock, {
+      // SelBlocks originally overrode resume() on editor.selDebugger.runner.IDETestLoop.prototype here.
+      $$.fn.interceptPush(editor, "testLoopResumeHandleFailedResult", $$.testLoopResumeHandleFailedResult );
+      // Override testLoopResumeHandleFailedResult first and testLoopResumeHandleError second, because the overriden testLoopResumeHandleError() expects the top intercepted function to be itself, so it can call $$.fn.getInterceptTop().attrs.handleError(e). @TODO later simplify that.
+      // 1. override editor, '??'
+      $$.fn.interceptPush(editor, "testLoopResumeHandleError",
+          $$.testLoopResumeHandleError, {
             handleError: function doTryHandlerError(err) {
               return self.handleCommandError(err);
             }
@@ -1041,7 +1045,8 @@ function $X(xpath, contextNode, resultType) {
       $$.LOG.debug("-- try nesting: " + $$.tcf.nestingLevel);
       if ($$.tcf.nestingLevel < 0) {
         // discontinue try-block handling
-        $$.fn.interceptPop();
+        $$.fn.interceptPop(); // Fpr testLoopResumeHandleError
+        $$.fn.interceptPop(); // For testLoopResumeHandleFailedResult
         // $$.tcf.bubbling = null;
       }
       if ($$.tcf.bubbling) {
