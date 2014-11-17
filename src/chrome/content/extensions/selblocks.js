@@ -996,8 +996,7 @@ function $X(xpath, contextNode, resultType) {
       var self= this;
       // SelBlocks originally overrode resume() on editor.selDebugger.runner.IDETestLoop.prototype here.
       $$.fn.interceptPush(editor, "testLoopResumeHandleFailedResult", $$.testLoopResumeHandleFailedResult );
-      // Override testLoopResumeHandleFailedResult first and testLoopResumeHandleError second, because the overriden testLoopResumeHandleError() expects the top intercepted function to be itself, so it can call $$.fn.getInterceptTop().attrs.handleError(e). @TODO later simplify that.
-      // 1. override editor, '??'
+      // Override testLoopResumeHandleFailedResult first and testLoopResumeHandleError second, because the overriden testLoopResumeHandleError() expects the top intercepted function to be itself, so it can call $$.fn.getInterceptTop().attrs.handleError(e).
       $$.fn.interceptPush(editor, "testLoopResumeHandleError",
           $$.testLoopResumeHandleError, {
             handleError: function doTryHandlerError(err) {
