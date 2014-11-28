@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="http://sel-blocks-global.selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
-<!-- If you'd like to preview this reference.xml in Firefox, open it either from http://sel-blocks-global.selite.googlecode.com/git/selblocks-global/src/chrome/content/reference.xml, or (once you install SeLite SelBlocksGlobal) as chrome://selite-selblocks-global/content/reference.xml.
+<!-- If you'd like to preview this reference.xml in Firefox, open it either
+- online from http://sel-blocks-global.selite.googlecode.com/git/selblocks-global/src/chrome/content/reference.xml, or
+- offline from your local checkout/unzipped folder at ../../../selenese_reference.html?src/chrome/content/reference.xml
 
 Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
 -->
@@ -113,7 +115,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <comment>Deprecated. Use <code>loadXmlVars</code> instead.</comment>
 </function>
 <function name="loadXmlVars">
-    <param name="xmlfile">File path or a URI to an xml file to load. Value sets is loaded from &lt;vars&gt; element(s).</param>
+    <param name="xmlfile">File path or a file:// URI to an xml file to load. If it's not a file:// URL, then it should be relative to location of the test case (not the test suite). Value sets is loaded from &lt;vars&gt; element(s).</param>
     <param name="selector">Boolean condition to select a set of values from the XML. Optional; if not present,
         then the XML must have exactly one set of variables - one element &lt;vars&gt;.
     </param>
@@ -126,10 +128,10 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="loadJsonVars">
-    <comment>Not sure how exactly to use. See loadXmlVars.</comment>
+    <comment>Similar to loadXmlVars, but this is for JSON. See loadXmlVars.</comment>
 </function>
 <function name="forXml">
-    <param name="xmlpath">File path or a file:// URL to an XML file. You can enter path to the file, relative to location of the current test case. (You can use Windows or Unix folder separators \ or /). In order to pass a full absolute path, enter file://...</param>
+    <param name="xmlpath">File path or a file:// URL to an XML file. You can enter path to the file, relative to location of the current test case (not the test suite). (You can use Windows or Unix folder separators \ or /). In order to pass a full absolute path, enter file://...</param>
     <comment>An XML-based loop. (I think that) on each iteration, it loads a set of variables from the XML
     (one set of variables per one element &lt;vars&gt;). Then it runs any statement(s) up to the matching <code>endForXml</code>.
     </comment>
@@ -138,7 +140,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <comment>End of the matching <code>forXml</code>.</comment>
 </function>
 <function name="forJson">
-    <param name="jsonpath">File path or a file:// URL to a JSON file. You can enter path to the file, relative to location of the current test case. (You can use Windows or Unix folder separators \ or /). In order to pass a full absolute path, enter file://...</param>
+    <param name="jsonpath">File path or a file:// URL to a JSON file. You can enter path to the file, relative to location of the current test case (not the test suite). (You can use Windows or Unix folder separators \ or /). In order to pass a full absolute path, enter file://...</param>
     <comment>This doesn't work well and I believe it didn't work well in SelBlocsk either. Developers: see @TODO in selblocks.js. Doc. once fixed: A JSON-based loop. (I think that) on each iteration, it loads a set of variables from the given file which should contain them in JSON notation. Then it runs any statement(s) up to the matching <code>endForXml</code>.
     </comment>
 </function>
@@ -205,8 +207,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="catch">
-    <param name="errorTextOrRegExp">Error message to catch - either the exaxt text, or a regular expression between //.</param>
-    <comment>It starts a <code>catch</code> part of its <code>try..catch..finally..endTry</code> block. If there was a matching exception, then its steps are run (until <code>finally</code> or matching <code>endTry</code>).
+    <param name="errorTextOrRegExp">Error message to catch, optional. If present, it must be a Javascript expression that evaluates to a string or to a regular expression, matching the whole error message or its substring. E.g. a string quoted within '..' or "..." , or a regular expression within /.../.</param>
+    <comment>It starts a <code>catch</code> part of its <code>try..catch..finally..endTry</code> block. If there was a matching exception, then its steps are run (until <code>finally</code> or matching <code>endTry</code>). There can be maximum one <code>catch</code> for any <code>try</code>.
     </comment>
 </function>
 <function name="finally">
@@ -216,6 +218,11 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
 <function name="endTry">
     <param name="tryName">Label-like name of this try block, used for validation of proper pairing; optional.</param>
     <comment>End of <code>try..catch..finally..endTry</code> block.
+    </comment>
+</function>
+<function name="throw">
+    <param name="error">A Javascript expression, that yields a string or an error. If it's a string literal, enclose it in apostrophes or quotes.</param>
+    <comment>Throw an error.
     </comment>
 </function>
 </apidoc>

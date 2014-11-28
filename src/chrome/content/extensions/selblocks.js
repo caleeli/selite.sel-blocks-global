@@ -108,7 +108,7 @@ function $X(xpath, contextNode, resultType) {
   // Global functions are intentional features provided for use by end user's in their Selenium scripts.
 
   // eg: "dilbert".isOneOf("dilbert","dogbert","mordac") => true
-  String.prototype.isOneOf = function(valuesObj)
+  String.prototype.isOneOf = function isOneOf(valuesObj)
   {
     var values = valuesObj;
     if (!Array.isArray(values)) {
@@ -125,7 +125,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // eg: "red".mapTo("primary", ["red","green","blue"]) => primary
-  String.prototype.mapTo = function(/* pairs of: string, array */)
+  String.prototype.mapTo = function mapTo(/* pairs of: string, array */)
   {
     var errMsg = " The map function requires pairs of argument: string, array";
     assert(arguments.length % 2 === 0, errMsg + "; found " + arguments.length);
@@ -143,7 +143,7 @@ function $X(xpath, contextNode, resultType) {
   // Return a translated version of a string
   // given string args, translate each occurrence of characters in t1 with the corresponding character from t2
   // given array args, if the string occurs in t1, return the corresponding string from t2, else null
-  String.prototype.translate = function(t1, t2)
+  String.prototype.translate = function translate(t1, t2)
   {
     assert(t1.constructor === t2.constructor, "translate() function requires arrays of the same type");
     assert(t1.length === t2.length, "translate() function requires arrays of equal size");
@@ -182,7 +182,7 @@ function $X(xpath, contextNode, resultType) {
      *  @return int 0-based index of given test case within the list of test cases
      *  of the test suite
      **/
-    function testCaseIdx( givenTestCase ) {
+    var testCaseIdx= function testCaseIdx( givenTestCase ) {
       givenTestCase= givenTestCase || testCase;
       // Must not use assert() here, because that calls notifyFatalHere() which calls idxHere()
       //  which calls globIdx() which calls testCaseIdx()
@@ -192,7 +192,7 @@ function $X(xpath, contextNode, resultType) {
           throw new Error(msg);
       }
       if( editor.app.testSuite.tests.length===0 ) {
-          var msg= "SelBlocks error: in testCaseIdx(), bad editor.app.testSuite.tests.length==0.";
+          var msg= "SelBlocks error: in testCaseIdx(), bad editor.app.testSuite.tests.length===0.";
           LOG.error( msg );
           throw new Error(msg);
       }
@@ -207,13 +207,13 @@ function $X(xpath, contextNode, resultType) {
           throw new Error(msg);
       }
       return caseIndex;
-    }
+    };
 
-    function logAndThrow(msg) {
+    var logAndThrow= function logAndThrow(msg) {
           var error= new Error(msg);
           LOG.error( msg+ "\n" +error.stack );
           throw error;    
-    }
+    };
 
     /** This serves to generate unique global identifiers for test script commands.
      *  Results of this functions are usually values of symbols[] and other structures.
@@ -223,7 +223,7 @@ function $X(xpath, contextNode, resultType) {
     // - try javascript:a={first: 1}; b={first: 1}; a==b
      @returns {string} global index of the command, in form testCaseIndex/commandIndex
     */
-    function globIdx( commandIndex, givenTestCase) {
+    var globIdx= function globIdx( commandIndex, givenTestCase) {
       givenTestCase= givenTestCase || testCase;
       // Must not use assert() here, because that calls notifyFatalHere() which calls idxHere() which calls globIdx()
       if( typeof commandIndex !=='number' || commandIndex<0 ) {
@@ -234,13 +234,13 @@ function $X(xpath, contextNode, resultType) {
       }
       var caseIndex= testCaseIdx(givenTestCase);
       return '' +caseIndex+ '/' +commandIndex;
-    }
+    };
     /** @return {number} (not a Number object) 0-based index of the respective command within its test case
      * @param {string} globIdxValue Global index of a test command (test step).
      */
-    function localIdx( globIdxValue ) {
+    var localIdx= function localIdx( globIdxValue ) {
       // Can't use assert() here, since assert indirectly calls fmtCmdRef() which calls localIdx() - recursion
-      SeLiteMisc.ensureType( globIdxValue, 'string', 'globIdxValue must be a string' );
+      SeLiteMisc.ensureType( globIdxValue, 'string', 'globIdxValue' );
       if( typeof globIdxValue !== 'string' ) {
           SeLiteMisc.fail( 'globIdxValue must be a string, but got ' +(typeof globIdxValue)+ ': ' +globIdxValue );
           LOG.error( msg );
@@ -272,12 +272,12 @@ function $X(xpath, contextNode, resultType) {
           throw new Error(msg);
       }
       return result;
-    }
+    };
     /**@param string result of globIdx() or of labelIdx()
      * @return {number} (not a Number object) 0-based index of the test case (for the given global index)
      *  within the list of test cases (i.e. editor.app.testSuite.tests)
      */
-    function localCaseIdxPart( globIdxValue ) {
+    var localCaseIdxPart= function localCaseIdxPart( globIdxValue ) {
       assert( typeof globIdxValue ==='string', 'globIdxValue must be a string.' );
       var lastSlashIndex= globIdxValue.lastIndexOf('/');
       assert( lastSlashIndex>0, 'globIdxValue must contain "/" and not as the first character.');
@@ -288,7 +288,7 @@ function $X(xpath, contextNode, resultType) {
       var result= beforeSlashNumber.valueOf();
       assert( result>=0 && result<editor.app.testSuite.tests.length, 'result not a valid index into editor.app.testSuite.tests.');
       return result;
-    }
+    };
 
     /** global array of _usable_ test cases, set in compileSelBlocks().
      *  It contains test cases in the same order as in editor.app.testSuite.tests[],
@@ -297,24 +297,30 @@ function $X(xpath, contextNode, resultType) {
     var testCases= [];
 
     // @return TestCase test case for the given global index
-    function localCase( globIdxValue ) {
+    var localCase= function localCase( globIdxValue ) {
       var index= localCaseIdxPart(globIdxValue);
       assert( index<testCases.length, 'case index: ' +index+ ' but testCases[] has length ' +testCases.length );
       return testCases[ index ];
       /* Following didn't work:
        return editor.app.testSuite.tests[ localCaseIdxPart(globIdxValue) ].content;
       */
-    }
+    };
+    /** @return {Object} Command structure for given global index
+     * */
+    var localCommand= function localCommand( globIdxValue ) {
+        return localCase( globIdxValue ).commands[ localIdx(globIdxValue) ];
+    };
+    
     /** This serves to generate and compare keys in symbols[] for label commands
      *  @param string label name
      *  @param TestCase test case where the label is; optional - using testCase by default
      *  @return string global label identifier in form 'test-case-index/label'
      **/
-    function labelIdx( label, givenTestCase ) {
+    var labelIdx= function labelIdx( label, givenTestCase ) {
         assert( typeof label ==='string', 'label must be a string.');
         givenTestCase= givenTestCase || testCase;
         return ''+testCaseIdx(givenTestCase)+ '/'+ label;
-    }
+    };
 
     // @TODO on insert, validate that function names are unique, i.e. no function overriding
   //=============== Call/Scope Stack handling ===============
@@ -330,25 +336,25 @@ function $X(xpath, contextNode, resultType) {
   var callStack = null;  // command execution stack
 
   // the idx of the currently executing command
-  // SelBlocksGlobal added param relativeShift and made it return a global, cross-test case index
+  // SelBlocksGlobal added param relativeShift and made it return a global, cross-test case index, rather than local (test-case specific) index
   /** @param {number} [relativeShift=0] Relative shift to the current command's position
    *  @return {string} global command index
    * */
-  function idxHere( relativeShift ) {
+  var idxHere= function idxHere( relativeShift ) {
       // Must not use assert() here, because that calls notifyFatalHere() which calls idxHere()
       return globIdx( localIdxHere(relativeShift) );
-    }
+    };
   /** @param {number} [relativeShift=0] Relative shift to the current command's position
    *  @return {number} Current command's position (within current test case), adjusted by relativeShift. Depending on relativeShift the result may not be a valid position.
    * */
-  function localIdxHere( relativeShift ) {
+  var localIdxHere= function localIdxHere( relativeShift ) {
     relativeShift= relativeShift || 0;
     return testCase.debugContext.debugIndex+relativeShift;
-  }
+  };
 
   // Command structure definitions, stored by command index
   // SelBlocksGlobal: stored by command global index - i.e. value of idxHere()
-    function BlockDefs() {
+    var BlockDefs= function BlockDefs() {
       //@TODO use this.xxx=yyy, and define init() on BlockDefs.prototype. Then NetBeans navigation is easier.
       /** @var {object} Serving as an associative array {globIdx => object of {any attributes, idx, cmdName}}. SelBlocksGlobal changed this from an array to an object. */
       var blkDefs = {};
@@ -369,7 +375,7 @@ function $X(xpath, contextNode, resultType) {
        *  @return {object} A new entry just added to this collection.
        *  @see variable blkDefs
        **/
-      blkDefs.init = function(i, attrs) {
+      blkDefs.init = function BlockDefsInit(i, attrs) {
         assert( typeof testCase.commands ==='object', 'BlockDefs::init() - testCase.commands is of bad type.');
         // @TODO assert regex numeric/numeric
         assert( typeof i ==='string', 'BlockDefs::init() - param i must be a globIdx() result.');
@@ -382,32 +388,32 @@ function $X(xpath, contextNode, resultType) {
         return blkDefs[i];
       };
       return blkDefs;
-    }
+    };
 
   // retrieve the blockDef at the given command idx
   /** @param {string} idx Global index of a test step. */
-  function blkDefAt(idx) {
+  var blkDefAt= function blkDefAt(idx) {
     return blockDefs[idx];
-  }
+  };
   // retrieve the blockDef for the currently executing command
-  function blkDefHere() {
+  var blkDefHere= function blkDefHere() {
     return blkDefAt(idxHere());
-  }
+  };
   // retrieve the blockDef for the given blockDef frame
-  function blkDefFor(stackFrame) {
+  var blkDefFor= function blkDefFor(stackFrame) {
     if (!stackFrame) {
       return null;
     }
     return blkDefAt(stackFrame.idx);
-  }
+  };
   
   // An Array object with stack functionality
-  function Stack() {
+  var Stack= function Stack() {
     var stack = [];
-    stack.isEmpty = function() { return stack.length === 0; };
-    stack.top = function()     { return stack[stack.length-1]; };
-    stack.findEnclosing = function(_hasCriteria) { return stack[stack.indexWhere(_hasCriteria)]; };
-    stack.indexWhere = function(_hasCriteria) { // undefined if not found
+    stack.isEmpty = function isEmpty() { return stack.length === 0; };
+    stack.top = function top()     { return stack[stack.length-1]; };
+    stack.findEnclosing = function findEnclosing(_hasCriteria) { return stack[stack.indexWhere(_hasCriteria)]; };
+    stack.indexWhere = function indexWhere(_hasCriteria) { // undefined if not found
       var i;
       for (i = stack.length-1; i >= 0; i--) {
         if (_hasCriteria(stack[i])) {
@@ -415,7 +421,7 @@ function $X(xpath, contextNode, resultType) {
         }
       }
     };
-    stack.unwindTo = function(_hasCriteria) {
+    stack.unwindTo = function unwindTo(_hasCriteria) {
       if (stack.length === 0) {
         return null;
       }
@@ -424,16 +430,16 @@ function $X(xpath, contextNode, resultType) {
       }
       return stack.top();
     };
-    stack.isHere = function() {
+    stack.isHere = function isHere() {
       return (stack.length > 0 && stack.top().idx === idxHere());
     };
     return stack;
-  }
+  };
   
   // Determine if the given stack frame is one of the given block kinds
-  Stack.isTryBlock = function(stackFrame) { return (blkDefFor(stackFrame).nature === "try"); };
-  Stack.isLoopBlock = function(stackFrame) { return (blkDefFor(stackFrame).nature === "loop"); };
-  Stack.isFunctionBlock = function(stackFrame) { return (blkDefFor(stackFrame).nature === "function"); };
+  Stack.isTryBlock = function isTryBlock(stackFrame) { return (blkDefFor(stackFrame).nature === "try"); };
+  Stack.isLoopBlock = function isLoopBlock(stackFrame) { return (blkDefFor(stackFrame).nature === "loop"); };
+  Stack.isFunctionBlock = function isFunctionBlock(stackFrame) { return (blkDefFor(stackFrame).nature === "function"); };
   
   // Flow control - we don't just alter debugIndex on the fly, because the command
   // preceding the destination would falsely get marked as successfully executed
@@ -448,7 +454,7 @@ function $X(xpath, contextNode, resultType) {
   // this SelBlocksGlobal source file is loaded, because testCase is not defined yet. Therefore we do it here
   // on the first run of the enclosing tail intercept of Selenium.prototype.reset() below.
   // And we intercept do it on the prototype, so that it applies to any test cases.
-  function nextCommand() {
+  var nextCommand= function nextCommand() {
     LOG.debug( 'SelBlocks head-intercept of TestCaseDebugContext.nextCommand()');
     if( this.started ) {
       // SelBlocksGlobal hook for SeLite Bootstrap. @TODO This shouldn't be here, but in testcase-debug-context. However, that would currently be a pain in the neck due to http://code.google.com/p/selenium/issues/detail?id=6697 and https://code.google.com/p/selenium/issues/detail?id=5495.
@@ -466,16 +472,16 @@ function $X(xpath, contextNode, resultType) {
         branchIdx = null;
       }
     }
-  }
+  };
   
   /** @param {string} globIdx value */
-  function setNextCommand(cmdIdx) {
+  var setNextCommand= function setNextCommand(cmdIdx) {
     var idx= localIdx(cmdIdx);
     var localTestCase= localCase(cmdIdx);
     assert( idx>=0 && idx< localTestCase.commands.length,
       " Cannot branch to non-existent command @" +cmdIdx );
     branchIdx = cmdIdx;
-  }
+  };
 
 (function () { // wrapper makes testCaseDebugContextWasIntercepted private
   var testCaseDebugContextWasIntercepted; // undefined or true
@@ -485,8 +491,8 @@ function $X(xpath, contextNode, resultType) {
   //  * before each testcase runs in a running testsuite
   // TBD: skip during single command execution
 
-  // SelBlocksGlobal: leavning the original indentation here, to make mergies easier:
-  $$.fn.interceptAfter(Selenium.prototype, "reset", function()
+  // SelBlocksGlobal: leaving the original indentation here, to make mergies easier:
+  $$.fn.interceptAfter(Selenium.prototype, "reset", function restInterceptedBySelBlocksGlobal()
   {
     $$.LOG.trace("In tail intercept :: Selenium.reset()");
     try {
@@ -497,7 +503,7 @@ function $X(xpath, contextNode, resultType) {
     callStack = new Stack();
     callStack.push({ blockStack: new Stack() }); // top-level execution state
 
-    $$.tcf = { nestingLevel: -1 };
+    $$.tcf = { nestingLevel: -1 }; // tcf=try..catch..finally
 
     if( testCaseDebugContextWasIntercepted===undefined ) {
     // customize flow control logic
@@ -513,20 +519,20 @@ function $X(xpath, contextNode, resultType) {
 ) ();
 
   // get the blockStack for the currently active callStack
-  function activeBlockStack() {
+  var activeBlockStack= function activeBlockStack() {
     return callStack.top().blockStack;
-  }
+  };
 
     // ================================================================================
     // Assemble block relationships and symbol locations
-    function compileSelBlocks()
+    var compileSelBlocks= function compileSelBlocks()
   {
       symbols= {}; // Let's clear symbols
       // Currently, this is called multiple times when Se IDE runs the whole test suite
       // - once per each test case. No harm in that, only a bit of wasted CPU.
 
       //alert( 'testCase===editor.suiteTreeView.getCurrentTestCase(): ' +(testCase===editor.suiteTreeView.getCurrentTestCase()) ); // --> false!
-      //alert( 'testCase==editor.getTestCase(): ' +(testCase==editor.getTestCase()) ); //--> true!
+      //alert( 'testCase===editor.getTestCase(): ' +(testCase===editor.getTestCase()) ); //--> true!
       var testCaseOriginal= testCase;
       var testCaseOriginal= editor.getTestCase();
       var testCaseOriginalIndex= -1;
@@ -553,14 +559,30 @@ function $X(xpath, contextNode, resultType) {
       // Application.prototype.showTestCaseFromSuite(givenTestCase) calls this.setTestCase(givenTestCase.content)
       editor.app.showTestCaseFromSuite( editor.app.getTestSuite().tests[testCaseOriginalIndex] );
       testCase.debugContext.testCase= testCase;
-  }
+  };
   // end of compileSelBlocks()
   
+    // SelBlocksGlobal: Following three functions were inside compileSelBlocksTestCase(), but that doesn't follow JS strict mode. Two of them didn't have to be closures. assertBlockIsPending() used to be a closure, now it received parameter lexStack and is not a closure anymore.
+    //- command validation
+    var assertNotAndWaitSuffix= function assertNotAndWaitSuffix(cmdIdx) {
+      assertCmd(cmdIdx, localCase(cmdIdx).commands[ localIdx(cmdIdx) ].command.indexOf("AndWait") === -1,
+        ", AndWait suffix is not valid for SelBlocks commands");
+    };
+    //- active block validation
+    var assertBlockIsPending= function assertBlockIsPending(lexStack, expectedCmd, cmdIdx, desc) {
+      assertCmd(cmdIdx, !lexStack.isEmpty(), desc || ", without an beginning [" + expectedCmd + "]");
+    };
+    //- command-pairing validation
+    var assertMatching= function assertMatching(curCmd, expectedCmd, cmdIdx, pendIdx) {
+      assertCmd(cmdIdx, curCmd === expectedCmd, ", does not match command " + fmtCmdRef(pendIdx));
+    };
+    
   // SelBlocksGlobal factored the following out of SelBlocks' compileSelBlocks(), to make 'testCase' not refer
   // to global testCase
-  function compileSelBlocksTestCase( testCase ) {
+  var compileSelBlocksTestCase= function compileSelBlocksTestCase( testCase ) {
     // SelBlocksGlobal: I set lexStack here, since it's local stack per testCase (and only used during compilation)
     var lexStack = new Stack();
+    
     // SelBlocksGlobal: Following loop variable commandIndex was renamed from 'i' in SelBlocks.
     // I set variable 'i' to globIdx() value of commandIndex (i.e. of the original intended value of 'i'). This way
     // the original SelBlocks code still uses variable 'i', so there are less merge conflicts.
@@ -597,7 +619,7 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "elseIf":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("elseIf", i, ", is not valid outside of an if/endIf block");
+            assertBlockIsPending(lexStack, "elseIf", i, ", is not valid outside of an if/endIf block");
             ifDef = lexStack.top();
             assertMatching(ifDef.cmdName, "if", i, ifDef.idx);
             var eIdx = blkDefFor(ifDef).elseIdx;
@@ -609,7 +631,7 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "else":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("if", i, ", is not valid outside of an if/endIf block");
+            assertBlockIsPending(lexStack, "if", i, ", is not valid outside of an if/endIf block");
             ifDef = lexStack.top();
             assertMatching(ifDef.cmdName, "if", i, ifDef.idx);
             if (blkDefFor(ifDef).elseIdx) {
@@ -620,7 +642,7 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "endIf":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("if", i);
+            assertBlockIsPending(lexStack, "if", i);
             ifDef = lexStack.pop();
             assertMatching(ifDef.cmdName, "if", i, ifDef.idx);
             blockDefs.init(i, { ifIdx: ifDef.idx });       // endIf -> if
@@ -636,7 +658,7 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "catch":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("try", i, ", is not valid without a try block");
+            assertBlockIsPending(lexStack, "try", i, ", is not valid without a try block");
             tryDef = lexStack.top();
             assertMatching(tryDef.cmdName, "try", i, tryDef.idx);
             if (blkDefFor(tryDef).catchIdx) {
@@ -651,7 +673,7 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "finally":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("try", i);
+            assertBlockIsPending(lexStack, "try", i);
             tryDef = lexStack.top();
             assertMatching(tryDef.cmdName, "try", i, tryDef.idx);
             if (blkDefFor(tryDef).finallyIdx) {
@@ -665,7 +687,7 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "endTry":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("try", i);
+            assertBlockIsPending(lexStack, "try", i);
             tryDef = lexStack.pop();
             assertMatching(tryDef.cmdName, "try", i, tryDef.idx);
             if (cmdTarget) {
@@ -690,7 +712,7 @@ function $X(xpath, contextNode, resultType) {
           case "endWhile": case "endFor": case "endForeach": case "endForJson": case "endForXml":
             assertNotAndWaitSuffix(i);
             expectedCmd = curCmd.substr(3).toLowerCase();
-            assertBlockIsPending(expectedCmd, i);
+            assertBlockIsPending(lexStack, expectedCmd, i);
             var beginDef = lexStack.pop();
             assertMatching(beginDef.cmdName.toLowerCase(), expectedCmd, i, beginDef.idx);
             blkDefFor(beginDef).endIdx = i;                // begin -> end
@@ -712,14 +734,14 @@ function $X(xpath, contextNode, resultType) {
             break;
           case "return":
             assertNotAndWaitSuffix(i);
-            assertBlockIsPending("function", i, ", is not valid outside of a function/endFunction block");
+            assertBlockIsPending(lexStack, "function", i, ", is not valid outside of a function/endFunction block");
             var funcCmd = lexStack.findEnclosing(Stack.isFunctionBlock);
             blockDefs.init(i, { funcIdx: funcCmd.idx });   // return -> function
             break;
           case "endFunction":  case "endScript":
             assertNotAndWaitSuffix(i);
             expectedCmd = curCmd.substr(3).toLowerCase();
-            assertBlockIsPending(expectedCmd, i);
+            assertBlockIsPending(lexStack, expectedCmd, i);
             var funcDef = lexStack.pop();
             assertMatching(funcDef.cmdName.toLowerCase(), expectedCmd, i, funcDef.idx);
             if (cmdTarget) {
@@ -747,25 +769,12 @@ function $X(xpath, contextNode, resultType) {
       }
       throw new SyntaxError(cmdErrors.join("; "));
     }
-    //- command validation
-    function assertNotAndWaitSuffix(cmdIdx) {
-      assertCmd(cmdIdx, localCase(cmdIdx).commands[ localIdx(cmdIdx) ].command.indexOf("AndWait") === -1,
-        ", AndWait suffix is not valid for SelBlocks commands");
-    }
-    //- active block validation
-    function assertBlockIsPending(expectedCmd, cmdIdx, desc) {
-      assertCmd(cmdIdx, !lexStack.isEmpty(), desc || ", without an beginning [" + expectedCmd + "]");
-    }
-    //- command-pairing validation
-    function assertMatching(curCmd, expectedCmd, cmdIdx, pendIdx) {
-      assertCmd(cmdIdx, curCmd === expectedCmd, ", does not match command " + fmtCmdRef(pendIdx));
-    }
-  } // end of compileSelBlocksTestCase()
+  }; // end of compileSelBlocksTestCase()
 
   // --------------------------------------------------------------------------------
 
   // prevent jumping in-to and/or out-of loop/function/try blocks
-  function assertIntraBlockJumpRestriction(fromIdx, toIdx) {
+  var assertIntraBlockJumpRestriction= function assertIntraBlockJumpRestriction(fromIdx, toIdx) {
     var fromRange = findBlockRange(fromIdx);
     var toRange   = findBlockRange(toIdx);
     if (fromRange || toRange) {
@@ -775,10 +784,10 @@ function $X(xpath, contextNode, resultType) {
       assert(fromRange && fromRange.equals(toRange), msg 
         + ". You cannot jump into, or out of: loops, functions, or try blocks.");
     }
-  }
+  };
 
   // ascertain in which, if any, block that an locusIdx occurs
-  function findBlockRange(locusIdx) {
+  var findBlockRange= function findBlockRange(locusIdx) {
     var idx;
     for (idx = locusIdx-1; idx >= 0; idx--) {
       var blk = blkDefAt(idx);
@@ -794,10 +803,10 @@ function $X(xpath, contextNode, resultType) {
       }
     }
     // return as undefined (no enclosing block at all)
-  }
+  };
 
   // pin-point in which sub-block, (try, catch or finally), that the idx occurs
-  function isolateTcfRange(idx, tryDef) {
+  var isolateTcfRange= function isolateTcfRange(idx, tryDef) {
     // assumptions: idx is known to be between try & endTry, and catch always precedes finally
     var RANGES = [
       { ifr: tryDef.finallyIdx, ito: tryDef.endIdx,     desc: "finally", desc2: "end" }
@@ -817,34 +826,34 @@ function $X(xpath, contextNode, resultType) {
         return new CmdRange(rng.ifr, rng.ito, desc);
       }
     }
-  }
+  };
 
   // represents a range of script lines
-  function CmdRange(topIdx, bottomIdx, desc) {
+  var CmdRange= function CmdRange(topIdx, bottomIdx, desc) {
     this.topIdx = topIdx;
     this.bottomIdx = bottomIdx;
     this.desc = desc;
-    this.equals = function(cmdRange) {
+    this.equals = function equals(cmdRange) {
       return (cmdRange && cmdRange.topIdx === this.topIdx && cmdRange.bottomIdx === this.bottomIdx);
     };
-    this.fmt = function() {
+    this.fmt = function fmt() {
       return " @[" + (this.topIdx+1) + "-" + (this.bottomIdx+1) + "]";
     };
-  }
+  };
 
   // ==================== SelBlocks Commands (Custom Selenium Actions) ====================
 
   var iexpr = Object.create($$.InfixExpressionParser);
 
   // validate declared variable/parameter name (without $ prefix)
-  function validateName(name, desc) {
+  var validateName= function validateName(name, desc) {
     var match = name.match(/^[a-zA-Z]\w*$/);
     if (!match) {
       notifyFatal("Invalid character(s) in " + desc + " name: '" + name + "'");
     }
-  }
+  };
 
-  Selenium.prototype.doLabel = function() {
+  Selenium.prototype.doLabel = function doLabel() {
     // noop
   };
     
@@ -853,12 +862,12 @@ function $X(xpath, contextNode, resultType) {
   /** @param {string} expression
    *  @return {string} expression, with any $xyz replaced by storedVars.xyz
    * */
-  function expandStoredVars( expression ) {
+  var expandStoredVars= function expandStoredVars( expression ) {
       return expression.replace( expandStoredVarsRegex, 'storedVars.$1' );
-  }
+  };
     
   // Skip the next N commands (default is 1)
-  Selenium.prototype.doSkipNext = function(spec)
+  Selenium.prototype.doSkipNext = function doSkipNext(spec)
   {
     assertRunning();
     var n = parseInt(this.evalWithExpandedStoredVars(spec), 10);
@@ -877,7 +886,7 @@ function $X(xpath, contextNode, resultType) {
     }
   };
 
-  Selenium.prototype.doGoto = function(label)
+  Selenium.prototype.doGoto = function doGoto(label)
   {
     assertRunning();
     var symbolIndex= labelIdx(label);
@@ -886,7 +895,7 @@ function $X(xpath, contextNode, resultType) {
     setNextCommand(symbols[symbolIndex]);
   };
 
-  Selenium.prototype.doGotoIf = function(condExpr, label)
+  Selenium.prototype.doGotoIf = function doGotoIf(condExpr, label)
   {
     assertRunning();
     if (this.evalWithExpandedStoredVars(condExpr))
@@ -894,7 +903,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // ================================================================================
-  Selenium.prototype.doIf = function(condExpr, locator)
+  Selenium.prototype.doIf = function doIf(condExpr, locator)
   {
     assertRunning();
     var ifDef = blkDefHere();
@@ -902,7 +911,7 @@ function $X(xpath, contextNode, resultType) {
     activeBlockStack().push(ifState);
     this.cascadeElseIf(ifState, condExpr);
   };
-  Selenium.prototype.doElseIf = function(condExpr)
+  Selenium.prototype.doElseIf = function doElseIf(condExpr)
   {
     assertRunning();
     assertActiveScope(blkDefHere().ifIdx);
@@ -914,7 +923,7 @@ function $X(xpath, contextNode, resultType) {
       this.cascadeElseIf(ifState, condExpr);
     }
   };
-  Selenium.prototype.doElse = function()
+  Selenium.prototype.doElse = function doElse()
   {
     assertRunning();
     assertActiveScope(blkDefHere().ifIdx);
@@ -924,14 +933,14 @@ function $X(xpath, contextNode, resultType) {
     }
     // else continue into else-block
   };
-  Selenium.prototype.doEndIf = function() {
+  Selenium.prototype.doEndIf = function doEndIf() {
     assertRunning();
     assertActiveScope(blkDefHere().ifIdx);
     activeBlockStack().pop();
     // fall out of if-endIf
   };
 
-  Selenium.prototype.cascadeElseIf= function(ifState, condExpr) {
+  Selenium.prototype.cascadeElseIf= function cascadeElseIf(ifState, condExpr) {
     this.assertCompilable("", condExpr, ";", "Invalid condition");
     if (!this.evalWithExpandedStoredVars(condExpr)) {
       // jump to next elseIf or else or endif
@@ -949,9 +958,9 @@ function $X(xpath, contextNode, resultType) {
   // ================================================================================
 
   // throw the given Error
-  Selenium.prototype.doThrow = function(err) {
+  Selenium.prototype.doThrow = function doThrow(err) {
     err = this.evalWithExpandedStoredVars(err);
-    // @TODO? cascade check that .constructor.name==='Error' or its parent constructor
+    // @TODO consider using SeLiteMisc.isInstance().
     if (!(err instanceof Error)) {
       err = new SelblocksError(idxHere(), err);
     }
@@ -959,7 +968,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // TBD: failed locators/timeouts/asserts ?
-  Selenium.prototype.doTry = function(tryName)
+  Selenium.prototype.doTry = function doTry(tryName)
   {
     assertRunning();
     var tryState = { idx: idxHere(), name: tryName };
@@ -975,7 +984,7 @@ function $X(xpath, contextNode, resultType) {
 
     // log an advisory about the active catch block
     if (tryDef.catchIdx) {
-      var errDcl = testCase.commands[ localIdx(tryDef.catchIdx) ].target;
+      var errDcl = localCommand( tryDef.catchIdx ).target;
       $$.LOG.debug(tryName + " catchable: " + (errDcl || "ANY"));
     }
 
@@ -985,9 +994,12 @@ function $X(xpath, contextNode, resultType) {
     if ($$.tcf.nestingLevel === 0) {
       // enable special command handling
       var self= this;
-      $$.fn.interceptPush(editor.selDebugger.runner.IDETestLoop.prototype, "resume",
-          $$.handleAsTryBlock, {
-            handleError: function(err) {
+      // SelBlocks originally overrode resume() on editor.selDebugger.runner.IDETestLoop.prototype here.
+      $$.fn.interceptPush(editor, "testLoopResumeHandleFailedResult", $$.testLoopResumeHandleFailedResult );
+      // Override testLoopResumeHandleFailedResult first and testLoopResumeHandleError second, because the overriden testLoopResumeHandleError() expects the top intercepted function to be itself, so it can call $$.fn.getInterceptTop().attrs.handleError(e).
+      $$.fn.interceptPush(editor, "testLoopResumeHandleError",
+          $$.testLoopResumeHandleError, {
+            handleError: function doTryHandlerError(err) {
               return self.handleCommandError(err);
             }
           });
@@ -996,7 +1008,7 @@ function $X(xpath, contextNode, resultType) {
     // continue into try-block
   };
 
-  Selenium.prototype.doCatch = function()
+  Selenium.prototype.doCatch = function doCatch()
   {
     assertRunning();
     assertActiveScope(blkDefHere().tryIdx);
@@ -1014,14 +1026,14 @@ function $X(xpath, contextNode, resultType) {
     $$.LOG.debug("entering catch block");
     // else continue into catch-block
   };
-  Selenium.prototype.doFinally = function() {
+  Selenium.prototype.doFinally = function doFinally() {
     assertRunning();
     assertActiveScope(blkDefHere().tryIdx);
     delete storedVars._error;
     $$.LOG.debug("entering finally block");
     // continue into finally-block
   };
-  Selenium.prototype.doEndTry = function(tryName)
+  Selenium.prototype.doEndTry = function doEndTry(tryName)
   {
     assertRunning();
     assertActiveScope(blkDefHere().tryIdx);
@@ -1032,7 +1044,8 @@ function $X(xpath, contextNode, resultType) {
       $$.LOG.debug("-- try nesting: " + $$.tcf.nestingLevel);
       if ($$.tcf.nestingLevel < 0) {
         // discontinue try-block handling
-        $$.fn.interceptPop();
+        $$.fn.interceptPop(); // Fpr testLoopResumeHandleError
+        $$.fn.interceptPop(); // For testLoopResumeHandleFailedResult
         // $$.tcf.bubbling = null;
       }
       if ($$.tcf.bubbling) {
@@ -1051,27 +1064,29 @@ function $X(xpath, contextNode, resultType) {
 
   // alter the behavior of Selenium error handling
   //   returns true if error is being managed
-  Selenium.prototype.handleCommandError= function(err)
+  Selenium.prototype.handleCommandError= function handleCommandError(err)
   {
     var tryState = bubbleToTryBlock(Stack.isTryBlock);
     var tryDef = blkDefFor(tryState);
-    $$.LOG.debug("error encountered while: " + tryState.execPhase);
-    if (hasUnspentCatch(tryState)) {
-      if (this.isMatchingCatch(err, tryDef.catchIdx)) {
-        // an expected kind of error has been caught
-        $$.LOG.info("@" + (idxHere(+1)) + ", error has been caught" + fmtCatching(tryState));
-        tryState.hasCaught = true;
-        tryState.execPhase = "catching";
-        storedVars._error = err;
-        $$.tcf.bubbling = null;
-        setNextCommand(tryDef.catchIdx);
-        return true;
-      }
+    if( tryState ) {
+        $$.LOG.debug("error encountered while: " + tryState.execPhase);
+        if (hasUnspentCatch(tryState)) {
+          if (this.isMatchingCatch(err, tryDef.catchIdx)) {
+            // an expected kind of error has been caught
+            $$.LOG.info("@" + (idxHere(+1)) + ", error has been caught" + fmtCatching(tryState));
+            tryState.hasCaught = true;
+            tryState.execPhase = "catching";
+            storedVars._error = err;
+            $$.tcf.bubbling = null;
+            setNextCommand(tryDef.catchIdx);
+            return true;
+          }
+        }
     }
     // error not caught .. instigate bubbling
     $$.LOG.debug("error not caught, bubbling error: '" + err.message + "'");
     $$.tcf.bubbling = { mode: "error", error: err, srcIdx: idxHere() };
-    if (hasUnspentFinally(tryState)) {
+    if (tryState && hasUnspentFinally(tryState)) {
       $$.LOG.info("Bubbling suspended while finally block runs");
       tryState.execPhase = "finallying";
       tryState.hasFinaled = true;
@@ -1088,11 +1103,11 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // execute any enclosing finally block(s) until reaching the given type of enclosing block
-  Selenium.prototype.bubbleCommand= function(cmdIdx, _isContextBlockType)
+  Selenium.prototype.bubbleCommand= function bubbleCommand(cmdIdx, _isContextBlockType)
   {
     var self= this;
     //- determine if catch matches an error, or there is a finally, or the ceiling block has been reached
-    var isTryWithMatchingOrFinally= function(stackFrame) {
+    var isTryWithMatchingOrFinally= function isTryWithMatchingOrFinally(stackFrame) {
       if (_isContextBlockType && _isContextBlockType(stackFrame)) {
         return true;
       }
@@ -1123,8 +1138,8 @@ function $X(xpath, contextNode, resultType) {
   };
 
   //- error message matcher
-  Selenium.prototype.isMatchingCatch= function(e, catchIdx) {
-    var errDcl = testCase.commands[ localIdx(catchIdx) ].target;
+  Selenium.prototype.isMatchingCatch= function isMatchingCatch(e, catchIdx) {
+    var errDcl = localCommand( catchIdx ).target;
     if (!errDcl) {
       return true; // no error specified means catch all errors
     }
@@ -1137,7 +1152,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // unwind the blockStack, and callStack (ie, aborting functions), until reaching the given criteria
-  function bubbleToTryBlock(_hasCriteria) {
+  var bubbleToTryBlock= function bubbleToTryBlock(_hasCriteria) {
     if ($$.tcf.nestingLevel < 0) {
       $$.LOG.warn("bubbleToTryBlock() called outside of any try nesting");
     }
@@ -1149,19 +1164,19 @@ function $X(xpath, contextNode, resultType) {
       tryState = unwindToBlock(_hasCriteria);
     }
     return tryState;
-  }
+  };
 
   // unwind the blockStack until reaching the given criteria
-  function unwindToBlock(_hasCriteria) {
+  var unwindToBlock= function unwindToBlock(_hasCriteria) {
     var tryState = activeBlockStack().unwindTo(_hasCriteria);
     if (tryState) {
       $$.LOG.debug("unwound to: " + fmtTry(tryState));
     }
     return tryState;
-  }
+  };
 
   // resume or conclude command/error bubbling
-  Selenium.prototype.reBubble= function() {
+  Selenium.prototype.reBubble= function reBubble() {
     if ($$.tcf.bubbling.mode === "error") {
       if ($$.tcf.nestingLevel > -1) {
         $$.LOG.debug("error-bubbling continuing...");
@@ -1173,7 +1188,7 @@ function $X(xpath, contextNode, resultType) {
         finally { $$.tcf.bubbling = null; }
       }
     }
-    else { // mode == "command"
+    else { // mode === "command"
       if (isBubblable()) {
         $$.LOG.debug("command-bubbling continuing...");
         this.bubbleCommand($$.tcf.bubbling.srcIdx, $$.tcf.bubbling._isStopCriteria);
@@ -1187,7 +1202,7 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // instigate or transform bubbling, as appropriate
-  Selenium.prototype.transitionBubbling= function(_isContextBlockType)
+  Selenium.prototype.transitionBubbling= function transitionBubbling(_isContextBlockType)
   {
     if ($$.tcf.bubbling) { // transform bubbling
       if ($$.tcf.bubbling.mode === "error") {
@@ -1196,7 +1211,7 @@ function $X(xpath, contextNode, resultType) {
         $$.tcf.bubbling = { mode: "command", srcIdx: idxHere(), _isStopCriteria: _isContextBlockType };
         return true;
       }
-      // mode == "command"
+      // mode === "command"
       $$.LOG.debug("Command suspension " + fmtCmdRef($$.tcf.bubbling.srcIdx)
         + ", replaced with " + fmtCmdRef(idxHere()));
       $$.tcf.bubbling.srcIdx = idxHere();
@@ -1211,31 +1226,31 @@ function $X(xpath, contextNode, resultType) {
   };
 
   // determine if bubbling is possible from this point outward
-  function isBubblable(_isContextBlockType) {
+  var isBubblable= function isBubblable(_isContextBlockType) {
     var canBubble = ($$.tcf.nestingLevel > -1);
     if (canBubble) {
-      var blkState = activeBlockStack().findEnclosing(isTryOrContextBlockType);
+      var blkState = activeBlockStack().findEnclosing(
+        //- determine if stackFrame is a try-block or the given type of block
+        function isTryOrContextBlockType(stackFrame) {
+          if (_isContextBlockType && _isContextBlockType(stackFrame)) {
+            return true;
+          }
+          return Stack.isTryBlock(stackFrame);
+        }
+      );
       return (blkDefFor(blkState).nature === "try");
     }
     return canBubble;
+  };
 
-    //- determine if stackFrame is a try-block or the given type of block
-    function isTryOrContextBlockType(stackFrame) {
-      if (_isContextBlockType && _isContextBlockType(stackFrame)) {
-        return true;
-      }
-      return Stack.isTryBlock(stackFrame);
-    }
-  }
-
-  function hasUnspentCatch(tryState) {
+  var hasUnspentCatch= function hasUnspentCatch(tryState) {
     return (blkDefFor(tryState).catchIdx && !tryState.hasCaught);
-  }
-  function hasUnspentFinally(tryState) {
+  };
+  var hasUnspentFinally= function hasUnspentFinally(tryState) {
     return (blkDefFor(tryState).finallyIdx && !tryState.hasFinaled);
-  }
+  };
 
-  function fmtTry(tryState)
+  var fmtTry= function fmtTry(tryState)
   {
     var tryDef = blkDefFor(tryState);
     return (
@@ -1244,9 +1259,9 @@ function $X(xpath, contextNode, resultType) {
       + ", " + tryState.execPhase + ".."
       + " " + $$.tcf.nestingLevel + "n"
     );
-  }
+  };
 
-  function fmtCatching(tryState)
+  var fmtCatching= function fmtCatching(tryState)
   {
     if (!tryState) {
       return "";
@@ -1256,35 +1271,35 @@ function $X(xpath, contextNode, resultType) {
       bbl = "@" + ($$.tcf.bubbling.srcIdx+1) + " ";
     }
     var tryDef = blkDefFor(tryState);
-    var catchDcl = testCase.commands[ localIdx(tryDef.catchIdx) ].target;
+    var catchDcl = localCommand( tryDef.catchIdx ).target;
     return " :: " + bbl + catchDcl;
-  }
+  };
   
   // ================================================================================
-  Selenium.prototype.doWhile = function(condExpr)
+  Selenium.prototype.doWhile = function doWhile(condExpr)
   {
     var self= this;
     enterLoop(
-      function() {    // validate
+      function doWhileValidate() {    // validate
           assert(condExpr, " 'while' requires a condition expression.");
           self.assertCompilable("", condExpr, ";", "Invalid condition");
           return null;
       }
-      ,function() { } // initialize
-      ,function() { return (self.evalWithExpandedStoredVars(condExpr)); } // continue?
-      ,function() { } // iterate
+      ,function doWhileInitialize() { } // initialize
+      ,function doWhileContinueCheck() { return (self.evalWithExpandedStoredVars(condExpr)); } // continue?
+      ,function doWhileIterate() { } // iterate
     );
   };
-  Selenium.prototype.doEndWhile = function() {
+  Selenium.prototype.doEndWhile = function doEndWhile() {
     iterateLoop();
   };
 
   // ================================================================================
-  Selenium.prototype.doFor = function(forSpec)
+  Selenium.prototype.doFor = function doFor(forSpec)
   {
     var self= this;
     enterLoop(
-      function(loop) { // validate
+      function doForValidate(loop) { // validate
           assert(forSpec, " 'for' requires: <initial-val>; <condition>; <iter-stmt>.");
           self.assertCompilable("for ( ", forSpec, " );", "Invalid loop parameters");
           var specs = iexpr.splitList(forSpec, ";");
@@ -1301,16 +1316,16 @@ function $X(xpath, contextNode, resultType) {
           }
           return localVarNames;
       }
-      ,function(loop) { self.evalWithExpandedStoredVars(loop.initStmt); }          // initialize
-      ,function(loop) { return self.evalWithExpandedStoredVars(loop.condExpr); } // continue?
-      ,function(loop) { self.evalWithExpandedStoredVars(loop.iterStmt); }          // iterate
+      ,function doForInitialize(loop) { self.evalWithExpandedStoredVars(loop.initStmt); }          // initialize
+      ,function doForContinueCheck(loop) { return self.evalWithExpandedStoredVars(loop.condExpr); } // continue?
+      ,function doForIterate(loop) { self.evalWithExpandedStoredVars(loop.iterStmt); }          // iterate
     );
   };
-  Selenium.prototype.doEndFor = function() {
+  Selenium.prototype.doEndFor = function endFor() {
     iterateLoop();
   };
 
-  function parseVarNames(initStmt) {
+  var parseVarNames= function parseVarNames(initStmt) {
     var varNames = [];
     if (initStmt) {
       var vInits = iexpr.splitList(initStmt, ",");
@@ -1321,14 +1336,14 @@ function $X(xpath, contextNode, resultType) {
       }
     }
     return varNames;
-  }
+  };
   
   // ================================================================================
-  Selenium.prototype.doForeach = function(varName, valueExpr)
+  Selenium.prototype.doForeach = function doForeach(varName, valueExpr)
   {
     var self= this;
     enterLoop(
-      function(loop) { // validate
+      function doForeachValidate(loop) { // validate
           assert(varName, " 'foreach' requires a variable name.");
           assert(valueExpr, " 'foreach' requires comma-separated values.");
           self.assertCompilable("[ ", valueExpr, " ];", "Invalid value list");
@@ -1338,42 +1353,42 @@ function $X(xpath, contextNode, resultType) {
           }
           return [varName, "_i"];
       }
-      ,function(loop) { loop.i = 0; storedVars[varName] = loop.values[loop.i]; }       // initialize
-      ,function(loop) { storedVars._i = loop.i; return (loop.i < loop.values.length);} // continue?
-      ,function(loop) { // iterate
+      ,function doForeachInitialize(loop) { loop.i = 0; storedVars[varName] = loop.values[loop.i]; }       // initialize
+      ,function doForeachContinue(loop) { storedVars._i = loop.i; return (loop.i < loop.values.length);} // continue?
+      ,function doForeachIterate(loop) { // iterate
           if (++(loop.i) < loop.values.length) {
             storedVars[varName] = loop.values[loop.i];
           }
       }
     );
   };
-  Selenium.prototype.doEndForeach = function() {
+  Selenium.prototype.doEndForeach = function doEndForeach() {
     iterateLoop();
   };
   // ================================================================================
-  Selenium.prototype.doLoadJsonVars = function(filepath, selector)
+  Selenium.prototype.doLoadJsonVars = function doLoadJsonVars(filepath, selector)
   {
     assert(filepath, " Requires a JSON file path or URL.");
     var jsonReader = new JSONReader(filepath);
     this.loadVars(jsonReader, "JSON object", filepath, selector);
   };
-  Selenium.prototype.doLoadXmlVars = function(filepath, selector)
+  Selenium.prototype.doLoadXmlVars = function doLoadXmlVars(filepath, selector)
   {
     assert(filepath, " Requires an XML file path or URL.");
     var xmlReader = new XmlReader(filepath);
     this.loadVars(xmlReader, "XML element", filepath, selector);
   };
-  Selenium.prototype.doLoadVars = function(filepath, selector)
+  Selenium.prototype.doLoadVars = function doLoadVars(filepath, selector)
   {
     $$.LOG.warn("The loadVars command has been deprecated and will be removed in future releases."
       + " Please use doLoadXmlVars instead.");
     Selenium.prototype.doLoadXmlVars(filepath, selector);
   };
 
-  Selenium.prototype.loadVars= function(reader, desc, filepath, selector)
+  Selenium.prototype.loadVars= function loadVars(reader, desc, filepath, selector)
   {
     if (selector) {
-      assertCompilable("", selector, ";", "Invalid selector condition");
+      this.assertCompilable("", selector, ";", "Invalid selector condition");
     }
     reader.load(filepath);
     reader.next(); // read first varset and set values on storedVars
@@ -1402,47 +1417,47 @@ function $X(xpath, contextNode, resultType) {
 
 
   // ================================================================================
-  Selenium.prototype.doForJson = function(jsonpath)
+  Selenium.prototype.doForJson = function doForJson(jsonpath)
   {
     enterLoop(
-      function(loop) {  // validate
+      function doForJsonValidate(loop) {  // validate
           assert(jsonpath, " Requires a JSON file path or URL.");
           loop.jsonReader = new JSONReader();
           var localVarNames = loop.jsonReader.load(jsonpath);
           return localVarNames;
       }
-      ,function() { }   // initialize
-      ,function(loop) { // continue?
+      ,function doForJsonInitialize() { }   // initialize
+      ,function doForJsonContinue(loop) { // continue?
           var isEof = loop.jsonReader.EOF();
           if (!isEof) { loop.jsonReader.next(); }
           return !isEof;
       }
-      ,function() { }
+      ,function doForJsonIterate() { }
     );
   };
-  Selenium.prototype.doEndForJson = function() {
+  Selenium.prototype.doEndForJson = function doEndForJson() {
     iterateLoop();
   };
 
-  Selenium.prototype.doForXml = function(xmlpath)
+  Selenium.prototype.doForXml = function doForXml(xmlpath)
   {
     enterLoop(
-      function(loop) {  // validate
+      function doForXmlValidate(loop) {  // validate
           assert(xmlpath, " 'forXml' requires an XML file path or URL.");
           loop.xmlReader = new XmlReader();
           var localVarNames = loop.xmlReader.load(xmlpath);
           return localVarNames;
       }
-      ,function() { }   // initialize
-      ,function(loop) { // continue?
+      ,function doForXmlInitialize() { }   // initialize
+      ,function doForXmlContinue(loop) { // continue?
           var isEof = loop.xmlReader.EOF();
           if (!isEof) { loop.xmlReader.next(); }
           return !isEof;
       }
-      ,function() { }
+      ,function doForXmlIterate() { }
     );
   };
-  Selenium.prototype.doEndForXml = function() {
+  Selenium.prototype.doEndForXml = function doEndForXml() {
     iterateLoop();
   };
 
@@ -1453,7 +1468,7 @@ function $X(xpath, contextNode, resultType) {
   // commands that *may* contain ${} variables. Bottom line, we can't just keep a copy
   // of parameters and then iterate back to the first command inside the body of a loop.
 
-  function enterLoop(_validateFunc, _initFunc, _condFunc, _iterFunc)
+  var enterLoop= function enterLoop(_validateFunc, _initFunc, _condFunc, _iterFunc)
   {
     assertRunning();
     var loopState;
@@ -1478,8 +1493,8 @@ function $X(xpath, contextNode, resultType) {
       setNextCommand(blkDefHere().endIdx);
     }
     // else continue into body of loop
-  }
-  function iterateLoop()
+  };
+  var iterateLoop= function iterateLoop()
   {
     assertRunning();
     assertActiveScope(blkDefHere().beginIdx);
@@ -1493,10 +1508,10 @@ function $X(xpath, contextNode, resultType) {
       // jump back to top of loop
       setNextCommand(blkDefHere().beginIdx);
     }
-  }
+  };
 
   // ================================================================================
-  Selenium.prototype.doContinue = function(condExpr) {
+  Selenium.prototype.doContinue = function doContinue(condExpr) {
     var loopState = this.dropToLoop(condExpr);
     if (loopState) {
       // jump back to top of loop for next iteration, if any
@@ -1504,7 +1519,7 @@ function $X(xpath, contextNode, resultType) {
       setNextCommand(blkDefAt(endCmd.endIdx).beginIdx);
     }
   };
-  Selenium.prototype.doBreak = function(condExpr) {
+  Selenium.prototype.doBreak = function doBreak(condExpr) {
     var loopState = this.dropToLoop(condExpr);
     if (loopState) {
       loopState.isComplete = true;
@@ -1515,11 +1530,11 @@ function $X(xpath, contextNode, resultType) {
 
   // Unwind the command stack to the inner-most active loop block
   // (unless the optional condition evaluates to false)
-  Selenium.prototype.dropToLoop= function(condExpr)
+  Selenium.prototype.dropToLoop= function dropToLoop(condExpr)
   {
     assertRunning();
     if (condExpr) {
-      assertCompilable("", condExpr, ";", "Invalid condition");
+      this.assertCompilable("", condExpr, ";", "Invalid condition");
     }
     if (this.transitionBubbling(Stack.isLoopBlock)) {
       return;
@@ -1533,7 +1548,7 @@ function $X(xpath, contextNode, resultType) {
 
 
   // ================================================================================
-  Selenium.prototype.doCall = function(funcName, argSpec)
+  Selenium.prototype.doCall = function doCall(funcName, argSpec)
   {
     var loop = currentTest || htmlTestRunner.currentTest; // See Selenium.prototype.doRollup()
     assertRunning(); // TBD: can we do single execution, ie, run from this point then break on return?
@@ -1551,7 +1566,7 @@ function $X(xpath, contextNode, resultType) {
       var _result= storedVars._result;
       storedVars= popped.savedVars; //restoreVarState( popped.savedVars );
       storedVars._result= _result;
-      assert( testCase==popped.testCase, "The popped testCase is different." ); // Not sure why, but this seems to be true.
+      assert( testCase===popped.testCase, "The popped testCase is different." ); // Not sure why, but this seems to be true.
     }
     else {
       // Support $stored-variablename, just like string{} and getQs, storeQs...
@@ -1563,7 +1578,7 @@ function $X(xpath, contextNode, resultType) {
 
       var originalCommandError= loop.commandError;
       // There can be several cascading layers of these calls - one per function call level.
-      loop.commandError= function( result ) {
+      loop.commandError= function doCallCommandError( result ) {
           var popped= callStack.pop();
           this.commandError= popped.originalCommandError;
             var _result= storedVars._result;
@@ -1571,10 +1586,11 @@ function $X(xpath, contextNode, resultType) {
             storedVars._result= _result;
           testCase= popped.testCase;
           testCase.debugContext.testCase= testCase;
+          testCase.debugContext.debugIndex = localIdx( popped.returnIdx );
           editor.selDebugger.pause();
           //selenium.reset(); // This doesn't help
 
-          originalCommandError.call( this, result ); // I've restored this.commandError *before* calling originalCommandError(), because if this was a deeper function call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
+          originalCommandError.call( this, result ); // I've restored this.commandError above *before* calling originalCommandError(), because: if this was a deeper function call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
           //@TODO setNextCommand(??)??
       };
         
@@ -1592,7 +1608,7 @@ function $X(xpath, contextNode, resultType) {
       setNextCommand(funcIdx);
     }
   };
-  Selenium.prototype.doFunction = function(funcName)
+  Selenium.prototype.doFunction = function doFunction(funcName)
   {
     assertRunning();
 
@@ -1606,17 +1622,17 @@ function $X(xpath, contextNode, resultType) {
       setNextCommand(funcDef.endIdx);
     }
   };
-  Selenium.prototype.doReturn = function(value) {
+  Selenium.prototype.doReturn = function doReturn(value) {
     this.returnFromFunction(null, value);
   };
-  Selenium.prototype.doEndFunction = function(funcName) {
+  Selenium.prototype.doEndFunction = function doEndFunction(funcName) {
     this.returnFromFunction(funcName);
   };
-  Selenium.prototype.doEndScript = function(scrName) {
+  Selenium.prototype.doEndScript = function doEndScript(scrName) {
     this.returnFromFunction(scrName);
   };
 
-  Selenium.prototype.returnFromFunction= function(funcName, returnVal)
+  Selenium.prototype.returnFromFunction= function returnFromFunction(funcName, returnVal)
   {
     assertRunning();
     if (this.transitionBubbling(Stack.isFunctionBlock)) {
@@ -1637,7 +1653,7 @@ function $X(xpath, contextNode, resultType) {
 
 
   // ================================================================================
-  Selenium.prototype.doExitTest = function() {
+  Selenium.prototype.doExitTest = function doExitTest() {
     if (this.transitionBubbling()) {
       return;
     }
@@ -1648,7 +1664,7 @@ function $X(xpath, contextNode, resultType) {
 
   // ========= storedVars management =========
     // SelBlocksGlobal: This is used instead of SelBlocks' evalWithVars(expr)
-    Selenium.prototype.evalWithExpandedStoredVars= function(expr) {
+    Selenium.prototype.evalWithExpandedStoredVars= function evalWithExpandedStoredVars(expr) {
       try {
         typeof expr==='string' || expr===undefined || SeLiteMisc.fail( 'expr must be a string or undefined' );
         var expanded= expr!==undefined
@@ -1670,7 +1686,7 @@ function $X(xpath, contextNode, resultType) {
     };
     
   // This is not related to parseArgs(str) in chrome/content/selenium-core/test/RemoteRunnerTest.js
-  Selenium.prototype.parseArgs= function(argSpec) { // comma-sep -> new prop-set
+  Selenium.prototype.parseArgs= function parseArgs(argSpec) { // comma-sep -> new prop-set
     var args = {};
     /* @TODO check & document whether I need to care about string{} here. Maybe just don't support string{...} for 'call' command - it wouldn't make sense for 'call' anyway. $variableName should work for 'call' without using string{...}. 'call' works with string{..}, but it's not recommended for now.
 
@@ -1712,7 +1728,7 @@ function $X(xpath, contextNode, resultType) {
     }
     return args;
   };
-  function initVarState(names) { // new -> storedVars(names)
+  var initVarState= function initVarState(names) { // new -> storedVars(names)
     if (names) {
       var i;
       for (i = 0; i < names.length; i++) {
@@ -1721,16 +1737,16 @@ function $X(xpath, contextNode, resultType) {
         }
       }
     }
-  }
-  function getVarStateFor(args) { // storedVars(prop-set) -> new prop-set
+  };
+  var getVarStateFor= function getVarStateFor(args) { // storedVars(prop-set) -> new prop-set
     var savedVars = {};
     var varname;
     for (varname in args) {
       savedVars[varname] = storedVars[varname];
     }
     return savedVars;
-  }
-  function getVarState(names) { // storedVars(names) -> new prop-set
+  };
+  var getVarState= function getVarState(names) { // storedVars(names) -> new prop-set
     var savedVars = {};
     if (names) {
       var i;
@@ -1739,14 +1755,14 @@ function $X(xpath, contextNode, resultType) {
       }
     }
     return savedVars;
-  }
-  function setVars(args) { // prop-set -> storedVars
+  };
+  var setVars= function setVars(args) { // prop-set -> storedVars
     var varname;
     for (varname in args) {
       storedVars[varname] = args[varname];
     }
-  }
-  function restoreVarState(savedVars) { // prop-set --> storedVars
+  };
+  var restoreVarState= function restoreVarState(savedVars) { // prop-set --> storedVars
     var varname;
     for (varname in savedVars) {
       if (savedVars[varname] === undefined) {
@@ -1756,31 +1772,31 @@ function $X(xpath, contextNode, resultType) {
         storedVars[varname] = savedVars[varname];
       }
     }
-  }
+  };
 
   // ========= error handling =========
 
-  function SelblocksError(idx, message) {
+  var SelblocksError= function SelblocksError(idx, message) {
     this.name = "SelblocksError";
     this.message = (message || "");
     this.idx = idx;
-  }
+  };
   SelblocksError.prototype = Error.prototype;
 
   // TBD: make into throwable Errors
-  function notifyFatalErr(msg, err) {
+  var notifyFatalErr= function notifyFatalErr(msg, err) {
     $$.LOG.error("Error " + msg);
     $$.LOG.logStackTrace(err);
     throw err;
-  }
-  function notifyFatal(msg) {
+  };
+  var notifyFatal= function notifyFatal(msg) {
     var err = new Error(msg);
     $$.LOG.error("Error " + msg);
     $$.LOG.logStackTrace(err);
     throw err;
-  }
-  function notifyFatalCmdRef(idx, msg) { notifyFatal(fmtCmdRef(idx) + msg); }
-  function notifyFatalHere(msg) {
+  };
+  var notifyFatalCmdRef= function notifyFatalCmdRef(idx, msg) { notifyFatal(fmtCmdRef(idx) + msg); };
+  var notifyFatalHere= function notifyFatalHere(msg) {
     // This may be called before testCase is set
     var commandRef;
     if( testCase===undefined ) {
@@ -1794,21 +1810,21 @@ function $X(xpath, contextNode, resultType) {
       commandRef= fmtCmdRef( globIdx( Math.max(stepLocalIdx, 0) ) )+ ': ';
     }
     notifyFatal( commandRef+msg );
-  }
+  };
 
-  function assertCmd(idx, cond, msg) { if (!cond) { notifyFatalCmdRef(idx, msg); } }
-  function assert(cond, msg)         { if (!cond) { notifyFatalHere(msg); } }
+  var assertCmd= function assertCmd(idx, cond, msg) { if (!cond) { notifyFatalCmdRef(idx, msg); } };
+  var assert= function assert(cond, msg)         { if (!cond) { notifyFatalHere(msg); } };
   // TBD: can we at least show result of expressions?
-  function assertRunning() {
+  var assertRunning= function assertRunning() {
     assert(testCase.debugContext.started, " Command is only valid in a running script,"
         + " i.e., cannot be executed via double-click, or via 'Execute this command'.");
-  }
-  function assertActiveScope(expectedIdx) {
+  };
+  var assertActiveScope= function assertActiveScope(expectedIdx) {
     var activeIdx = activeBlockStack().top().idx;
     assert(activeIdx === expectedIdx, " unexpected command, active command was " + fmtCmdRef(activeIdx));
-  }
+  };
 
-  Selenium.prototype.assertCompilable= function(left, stmt, right, explanation) {
+  Selenium.prototype.assertCompilable= function assertCompilable(left, stmt, right, explanation) {
     try {//@TODO Peter disabled this, because it refuses back apostrophe notation - in override of preprocessParameter()
       //this.evalWithExpandedStoredVars("function selblocksTemp() { " + left + stmt + right + " }");
     }
@@ -1817,38 +1833,38 @@ function $X(xpath, contextNode, resultType) {
     }
   };
 
-  function fmtCurCmd() {
+  var fmtCurCmd= function fmtCurCmd() {
     return fmtCmdRef(idxHere());
-  }
-  function fmtCmdRef(idx) {
+  };
+  var fmtCmdRef= function fmtCmdRef(idx) {
     var test= localCase(idx);
     var commandIdx= localIdx(idx);
 
     return "@" +test.filename+ ': ' +(commandIdx+1) + ": " + fmtCommand( test.commands[commandIdx] );
-  }
-  function fmtCommand(cmd) {
+  };
+  var fmtCommand= function fmtCommand(cmd) {
     var c = cmd.command;
     if (cmd.target) { c += "|" + cmd.target; }
     if (cmd.value)  { c += "|" + cmd.value; }
     return '[' + c + ']';
-  }
+  };
 
   //================= Utils ===============
 
   // Elapsed time, optional duration provides expiration
-  function IntervalTimer(msDuration) {
+  var IntervalTimer= function IntervalTimer(msDuration) {
     this.msStart = +new Date();
-    this.getElapsed = function() { return (+new Date() - this.msStart); };
-    this.hasExpired = function() { return (msDuration && this.getElapsed() > msDuration); };
-    this.reset = function() { this.msStart = +new Date(); };
-  }
+    this.getElapsed = function getElapsed() { return (+new Date() - this.msStart); };
+    this.hasExpired = function hasExpired() { return (msDuration && this.getElapsed() > msDuration); };
+    this.reset = function reset() { this.msStart = +new Date(); };
+  };
 
   // produce an iterator object for the given array
-  function arrayIterator(arrayObject) {
-    return new function(ary) {
+  var arrayIterator= function arrayIterator(arrayObject) {
+    return new function arrayIteratorClosure(ary) {
       var cur = 0;
-      this.hasNext = function() { return (cur < ary.length); };
-      this.next = function() { if (this.hasNext()) { return ary[cur++]; } };
+      this.hasNext = function hasNext() { return (cur < ary.length); };
+      this.next = function next() { if (this.hasNext()) { return ary[cur++]; } };
     }(arrayObject);
   };
 
@@ -1856,7 +1872,7 @@ function $X(xpath, contextNode, resultType) {
   // Adapted from the datadriven plugin
   // http://web.archive.org/web/20120928080130/http://wiki.openqa.org/display/SEL/datadriven
 
-  function XmlReader()
+  var XmlReader= function XmlReader()
   {
     var varsets = null;
     var varNames = null;
@@ -1864,7 +1880,7 @@ function $X(xpath, contextNode, resultType) {
     var varsetIdx = 0;
 
     // load XML file and return the list of var names found in the first <VARS> element
-    this.load = function(filepath)
+    this.load = function load(filepath)
     {
       var fileReader = new FileReader();
       var fileUrl = urlFor(filepath);
@@ -1878,37 +1894,38 @@ function $X(xpath, contextNode, resultType) {
       }
 
       curVars = 0;
-      varNames = attrNamesFor(varsets[0]);
+      varNames = XmlReader.attrNamesFor(varsets[0]);
       return varNames;
     };
 
-    this.EOF = function() {
+    this.EOF = function EOF() {
       return (curVars === null || curVars >= varsets.length);
     };
 
-    this.next = function()
+    this.next = function next()
     {
       if (this.EOF()) {
         $$.LOG.error("No more <vars> elements to read after element #" + varsetIdx);
         return;
       }
       varsetIdx++;
-      $$.LOG.debug(varsetIdx + ") " + serializeXml(varsets[curVars]));  // log each name & value
+      $$.LOG.debug(varsetIdx + ") " + XmlReader.serialize(varsets[curVars]));  // log each name & value
 
-      var expected = countAttrs(varsets[0]);
-      var found = countAttrs(varsets[curVars]);
+      var expected = XmlReader.countAttrs(varsets[0]);
+      var found = XmlReader.countAttrs(varsets[curVars]);
       if (found !== expected) {
         throw new Error("Inconsistent <testdata> at <vars> element #" + varsetIdx
           + "; expected " + expected + " attributes, but found " + found + "."
           + " Each <vars> element must have the same set of attributes."
         );
       }
-      setupStoredVars(varsets[curVars]);
+      XmlReader.setupStoredVars(varsets, varsetIdx, varsets[curVars]);
       curVars++;
     };
+  }; // end of XmlReader
 
-    //- retrieve the names of each attribute on the given XML node
-    function attrNamesFor(node) {
+  //- retrieve the names of each attribute on the given XML node
+  XmlReader.attrNamesFor= function attrNamesFor(node) {
       var attrNames = [];
       var varAttrs = node.attributes; // NamedNodeMap
       var v;
@@ -1916,15 +1933,13 @@ function $X(xpath, contextNode, resultType) {
         attrNames.push(varAttrs[v].nodeName);
       }
       return attrNames;
-    }
-
-    //- determine how many attributes are present on the given node
-    function countAttrs(node) {
+  };
+  //- determine how many attributes are present on the given node
+  XmlReader.countAttrs= function countAttrs(node) {
       return node.attributes.length;
-    }
-
-    //- set selenium variables from given XML attributes
-    function setupStoredVars(node) {
+  };
+  //- set selenium variables from given XML attributes
+  XmlReader.setupStoredVars= function setupStoredVars(varsets, varsetIdx, node) {
       var varAttrs = node.attributes; // NamedNodeMap
       var v;
       for (v = 0; v < varAttrs.length; v++) {
@@ -1937,20 +1952,17 @@ function $X(xpath, contextNode, resultType) {
         }
         storedVars[attr.nodeName] = attr.nodeValue;
       }
-    }
-
-    //- format the given XML node for display
-    function serializeXml(node) {
+  };
+  //- format the given XML node for display
+  XmlReader.serialize= function serialize(node) {
       if (XMLSerializer !== "undefined") {
         return (new XMLSerializer()).serializeToString(node) ;
       }
       if (node.xml) { return node.xml; }
       throw "XMLSerializer is not supported or can't serialize " + node;
-    }
-  } // end of XmlReader
-
-
-  function JSONReader()
+  };
+  
+  var JSONReader= function JSONReader()
   {
     var varsets = null;
     var varNames = null;
@@ -1958,7 +1970,7 @@ function $X(xpath, contextNode, resultType) {
     var varsetIdx = 0;
 
     // load JSON file and return the list of var names found in the first object
-    this.load = function(filepath)
+    this.load = function load(filepath)
     {
       var fileReader = new FileReader();
       var fileUrl = urlFor(filepath);
@@ -1985,57 +1997,58 @@ function $X(xpath, contextNode, resultType) {
       $$.LOG.info('Has successfully read the JSON file');
 
       curVars = 0;
-      varNames = attrNamesFor(varsets[0]);
+      varNames = JSONReader.attrNamesFor(varsets[0]);
       return varNames;
     };
 
-    this.EOF = function() {
+    this.EOF = function EOF() {
       return (curVars === null || curVars >= varsets.length);
     };
 
-    this.next = function()
+    this.next = function next()
     {
       if (this.EOF()) {
         $$.LOG.error("No more JSON objects to read after object #" + varsetIdx);
         return;
       }
       varsetIdx++;
-      $$.LOG.debug(varsetIdx + ") " + serializeJson(varsets[curVars]));  // log each name & value
+      $$.LOG.debug(varsetIdx + ") " + JSONReader.serialize(varsets[curVars]));  // log each name & value
 
-      var expected = countAttrs(varsets[0]);
-      var found = countAttrs(varsets[curVars]);
+      var expected = JSONReader.countAttrs(varsets[0]);
+      var found = JSONReader.countAttrs(varsets[curVars]);
       if (found !== expected) {
         throw new Error("Inconsistent JSON object #" + varsetIdx
           + "; expected " + expected + " attributes, but found " + found + "."
           + " Each JSON object must have the same set of attributes."
         );
       }
-      setupStoredVars(varsets[curVars]);
+      JSONReader.setupStoredVars(varsets, varsetIdx, varsets[curVars]);
       curVars++;
     };
+  }; // end of JSONReader
 
-    //- retrieve the names of each attribute on the given object
-    function attrNamesFor(obj) {
+  //- retrieve the names of each attribute on the given object
+  JSONReader.attrNamesFor= function attrNamesFor(obj) {
       var attrNames = [];
       var attrName;
       for (attrName in obj) {
         attrNames.push(attrName);
       }
       return attrNames;
-    }
+  };
 
-    //- determine how many attributes are present on the given obj
-    function countAttrs(obj) {
+  //- determine how many attributes are present on the given obj
+  JSONReader.countAttrs= function countAttrs(obj) {
       var n = 0;
       var attrName;
       for (attrName in obj) {
         n++;
       }
       return n;
-    }
+  };
 
     //- set selenium variables from given JSON attributes
-    function setupStoredVars(obj) {
+  JSONReader.setupStoredVars= function setupStoredVars(varsets, varsetIdx, obj) {
       var attrName;
       for (attrName in obj) {
         if (null === varsets[0][attrName]) {
@@ -2046,16 +2059,15 @@ function $X(xpath, contextNode, resultType) {
         }
         storedVars[attrName] = obj[attrName];
       }
-    }
+  };
 
-    //- format the given JSON object for display
-    function serializeJson(obj) {
+  //- format the given JSON object for display
+  JSONReader.serialize= function serialize(obj) {
       var json = uneval(obj);
       return json.substring(1, json.length-1);
-    }
-  } // end of JSONReader
-
-  function urlFor(filepath) {
+  };
+    
+  var urlFor= function urlFor(filepath) {
     var URL_PFX = "file://";
     if (filepath.substring(0, URL_PFX.length).toLowerCase() !== URL_PFX) {
       var testCasePath = testCase.file.path.replace("\\", "/", "g");
@@ -2063,7 +2075,7 @@ function $X(xpath, contextNode, resultType) {
       filepath = URL_PFX + testCasePath.substr(0, i) + "/" + filepath;
     }
     return filepath;
-  }
+  };
 
 
   // ==================== File Reader ====================
@@ -2071,7 +2083,7 @@ function $X(xpath, contextNode, resultType) {
 
   function FileReader() {}
 
-  FileReader.prototype.prepareUrl = function(url) {
+  FileReader.prototype.prepareUrl = function prepareUrl(url) {
     var absUrl;
     // htmlSuite mode of SRC? TODO is there a better way to decide whether in SRC mode?
     if (window.location.href.indexOf("selenium-server") >= 0) {
@@ -2084,7 +2096,7 @@ function $X(xpath, contextNode, resultType) {
     return absUrl;
   };
 
-  FileReader.prototype.getDocumentSynchronous = function(url) {
+  FileReader.prototype.getDocumentSynchronous = function getDocumentSynchronous(url) {
     var absUrl = this.prepareUrl(url);
     var requester = this.newXMLHttpRequest();
     if (!requester) {
@@ -2092,6 +2104,7 @@ function $X(xpath, contextNode, resultType) {
     }
     requester.open("GET", absUrl, false); // synchronous (we don't want selenium to go ahead)
     try {
+      //following generates 'syntax error' in Browser Console. See ThirdPartyIssues.wiki > https://bugzilla.mozilla.org/show_bug.cgi?id=1031985
       requester.send(null);
     } catch(e) {
       throw new Error("Error while fetching URL '" + absUrl + "':: " + e);
@@ -2103,7 +2116,7 @@ function $X(xpath, contextNode, resultType) {
     return requester;
   };
 
-  FileReader.prototype.newXMLHttpRequest = function() {
+  FileReader.prototype.newXMLHttpRequest = function newXMLHttpRequest() {
     var requester = 0;
     try {
       // for IE/ActiveX
@@ -2134,7 +2147,7 @@ function $X(xpath, contextNode, resultType) {
     // The 3rd captured group - the postfix - is guaranteed not to end with # or @  that would be just before the next occurrence of `..` (if any)
     var enclosedByBackApostrophes= /((?:[^`]|``)*)`((?:[^`]|``)+)`((?:[^`#@]|``|[#@](?!`))*)/g;
     var doubledBackApostrophe= /``/g;
-    Selenium.prototype.preprocessParameter = function(whole) {
+    Selenium.prototype.preprocessParameter = function selBlocksGlobalPreprocessParameter(whole) {
         // javascript{..} doesn't replace ${variableName}.
         // Selenese ${variableName} requires {}, which is good because it separates it from the rest of the target/value,
         // so it's robust yet easy to use.
@@ -2165,7 +2178,7 @@ function $X(xpath, contextNode, resultType) {
         }
         else {
             enclosedByBackApostrophes.lastIndex=0;
-            var hasExtra= false; // Whether there was @`..` processed already
+            var hasExtra= false; // Whether there is @`..`
             var extra; // The extra value: result of Javascript from @`..`
             /** @type {boolean} Whether <code>result</code> contains a result of at least one `..` or its variations. If it is so, then this already replaced any doubled back apostrophes `` by one `..
              * */
