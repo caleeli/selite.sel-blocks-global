@@ -1,8 +1,8 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite SelBlocks Global',
-    pluginId: 'selblocks-global@selite.googlecode.com',
-    coreUrl: [
+    id: 'selblocks-global@selite.googlecode.com',
+    coreURL: [
       'chrome://selite-selblocks-global/content/extensions/name-space.js',
       'chrome://selite-selblocks-global/content/extensions/logger.js',
       'chrome://selite-selblocks-global/content/extensions/function-intercepting.js',
@@ -12,7 +12,7 @@ SeLiteExtensionSequencer.registerPlugin( {
       'chrome://selite-selblocks-global/content/extensions/selenium-executionloop-handleAsTryBlock.js',
       'chrome://selite-selblocks-global/content/extensions/selblocks.js'
     ],
-    xmlUrl: 'chrome://selite-selblocks-global/content/reference.xml',
+    xmlURL: 'chrome://selite-selblocks-global/content/reference.xml',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-selblocks-global/',
     requisitePlugins: {
         'testcase-debug-context@selite.googlecode.com': {
