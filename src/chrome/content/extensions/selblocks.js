@@ -2160,14 +2160,14 @@ function $X(xpath, contextNode, resultType) {
            That limits the usage of string{}: you normally don't want string{} to yield an object/array. For such cases use object{...} or array[...]. E.g. passing an
              object as the second parameter to 'typeRandom' action (function doTypeRandom).
         */
-        LOG.debug('SelBlocksGlobal head override of preprocessParameter(): ' +whole );
+        LOG.debug('SeLite SelBlocks Global head override of preprocessParameter(): ' +whole );
         var numberOfBackApostrophes= 0;
         for( var i=0; i<whole.length; i++ ) {
             if( whole[i]==='`' ) {
                 numberOfBackApostrophes++;
             }
         }
-        numberOfBackApostrophes%2===0 || SeLiteMisc.fail( "SelBlocksGlobal and its EnhancedSyntax doesn't allow Selenese parameters to contain an odd number of back apostrophes `. The parameter value was: " +whole );
+        numberOfBackApostrophes%2===0 || SeLiteMisc.fail( "SeLite SelBlocks Global and its EnhancedSyntax doesn't allow Selenese parameters to contain an odd number of back apostrophes `. The parameter value was: " +whole );
         // Match `..`, #`..`, =`..` and @`..`. Replace $xx parts with respective stored variables. Evaluate. If it was #`..`, then escape it as an XPath string. If it was @`...`, then make the rest a String object (rather than a string primitive) and store thesult of Javascript in field seLiteExtra on that String object.
         // I don't replace through a callback function - e.g. whole.replace( enclosedByBackApostrophes, function replacer(match, field) {..} ) - because that would always cast the replacement result as string.
         var match;
