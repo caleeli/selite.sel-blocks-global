@@ -1986,6 +1986,7 @@ function $X(xpath, contextNode, resultType) {
        *    varsets= eval( 'var result=' +fileObj+ '; result' )
        * }
        */
+      // Following generates a false-positive error 'syntax error varset.json:1'. See wiki/ThirdPartyIssues > https://bugzilla.mozilla.org/show_bug.cgi?id=1031985
       varsets = eval(fileObj);
       
       // @TODO re-write this. It doesn't make sense.
