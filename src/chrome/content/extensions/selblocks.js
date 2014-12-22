@@ -1159,6 +1159,13 @@ function $X(xpath, contextNode, resultType) {
     var tryState = unwindToBlock(_hasCriteria);
     while (!tryState && $$.tcf.nestingLevel > -1 && callStack.length > 1) {
       var callFrame = callStack.pop();
+      var _result= storedVars._result;
+      storedVars= callFrame.savedVars;
+      storedVars._result= _result;
+      testCase= callFrame.testCase;
+      testCase.debugContext.testCase= testCase;
+      testCase.debugContext.debugIndex = localIdx( callFrame.returnIdx );
+          
       $$.LOG.info("function '" + callFrame.name + "' aborting due to error");
       restoreVarState(callFrame.savedVars);
       tryState = unwindToBlock(_hasCriteria);
@@ -1579,19 +1586,10 @@ function $X(xpath, contextNode, resultType) {
       var originalCommandError= loop.commandError;
       // There can be several cascading layers of these calls - one per function call level.
       loop.commandError= function doCallCommandError( result ) {
-          var popped= callStack.pop();
-          this.commandError= popped.originalCommandError;
-            var _result= storedVars._result;
-            storedVars= popped.savedVars; //restoreVarState( popped.savedVars );
-            storedVars._result= _result;
-          testCase= popped.testCase;
-          testCase.debugContext.testCase= testCase;
-          testCase.debugContext.debugIndex = localIdx( popped.returnIdx );
+          this.commandError= originalCommandError;
+          // See also bubbleToTryBlock(..)
           editor.selDebugger.pause();
-          //selenium.reset(); // This doesn't help
-
           originalCommandError.call( this, result ); // I've restored this.commandError above *before* calling originalCommandError(), because: if this was a deeper function call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
-          //@TODO setNextCommand(??)??
       };
         
       callStack.push( {
