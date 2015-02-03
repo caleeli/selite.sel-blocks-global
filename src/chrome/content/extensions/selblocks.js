@@ -384,7 +384,7 @@ function $X(xpath, contextNode, resultType) {
         blkDefs[i].idx = i;
         // Following line is from original SelBlocks, here just for documentation
         //blkDefs[i].cmdName = testCase.commands[i].command;
-        blkDefs[i].cmdName = localCase(i).commands[ localIdx(i) ].command;
+        blkDefs[i].cmdName = localCase(i).commands[ localIdx(i) ].command.trimLeft(); // trimLeft() is for commands indented with whitespace (when using SeLite ClipboardAndIndent)
         return blkDefs[i];
       };
       return blkDefs;
@@ -591,7 +591,7 @@ function $X(xpath, contextNode, resultType) {
     {
       if (testCase.commands[commandIndex].type === "command")
       {
-        var curCmd = testCase.commands[commandIndex].command;
+        var curCmd = testCase.commands[commandIndex].command.trimLeft(); // trimLeft() is for commands indented with whitespace (when using SeLite ClipboardAndIndent)
         var aw = curCmd.indexOf("AndWait");
         if (aw !== -1) {
           // just ignore the suffix for now, this may or may not be a SelBlocks commands
@@ -905,7 +905,7 @@ function $X(xpath, contextNode, resultType) {
   // ================================================================================
   Selenium.prototype.doIf = function doIf(condExpr, locator)
   {
-    assertRunning();
+    assertRunning();debugger;
     var ifDef = blkDefHere();
     var ifState = { idx: idxHere(), elseIfItr: arrayIterator(ifDef.elseIfIdxs) };
     activeBlockStack().push(ifState);
@@ -1841,7 +1841,7 @@ function $X(xpath, contextNode, resultType) {
     return "@" +test.filename+ ': ' +(commandIdx+1) + ": " + fmtCommand( test.commands[commandIdx] );
   };
   var fmtCommand= function fmtCommand(cmd) {
-    var c = cmd.command;
+    var c = cmd.command.trimLeft(); // trimLeft() is for commands indented with whitespace (when using SeLite ClipboardAndIndent)
     if (cmd.target) { c += "|" + cmd.target; }
     if (cmd.value)  { c += "|" + cmd.value; }
     return '[' + c + ']';
