@@ -17,9 +17,20 @@
 	<td>storedVars.userid===&quot;dilbert&quot;</td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>LOG.info( storedVars.role )</td>
-	<td></td>
+	<td>assertEval</td>
+	<td>storedVars.role</td>
+	<td>superuser</td>
+</tr>
+<!---->
+<tr>
+	<td>loadJsonVars</td>
+	<td>file://` SeLiteSettings.getTestSuiteFolder() `/varset.json</td>
+	<td>storedVars.userid===&quot;dilbert&quot;</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>storedVars.role</td>
+	<td>superuser</td>
 </tr>
 <!---->
 <tr>
@@ -28,9 +39,9 @@
 	<td>storedVars.userid===&quot;wally&quot;</td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>LOG.info( storedVars.role )</td>
-	<td></td>
+	<td>assertEval</td>
+	<td>storedVars.role</td>
+	<td>lazyuser</td>
 </tr>
 </tbody></table>
 </body>

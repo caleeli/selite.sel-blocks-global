@@ -1972,24 +1972,21 @@ function $X(xpath, contextNode, resultType) {
     {
       var fileReader = new FileReader();
       var fileUrl = urlFor(filepath);
+      // Following steps generate a false-positive error 'syntax error varset.json:1'. See wiki/ThirdPartyIssues > https://bugzilla.mozilla.org/show_bug.cgi?id=1031985
       var xmlHttpReq = fileReader.getDocumentSynchronous(fileUrl);
       $$.LOG.info("Reading from: " + fileUrl);
 
       var fileObj = xmlHttpReq.responseText;
       $$.LOG.debug('evaluating JSON file' );
       
-      //@TODO This doesn't work well. Have
-      /* try {
-       *    varsets= JSON.parse(fileObj);
-       * }
-       * catch(e) {
-       *    varsets= eval( 'var result=' +fileObj+ '; result' )
-       * }
-       */
-      // Following generates a false-positive error 'syntax error varset.json:1'. See wiki/ThirdPartyIssues > https://bugzilla.mozilla.org/show_bug.cgi?id=1031985
-      varsets = eval(fileObj);
+      try {
+           varsets= JSON.parse(fileObj);
+      }
+      catch(e) {
+          // This is for .json files that don't have keys (field names) in quotes - i.e. they have them in apostrophes or unquoted. Extension reviewers: There is no other way around this. The user's intention is to load the file as an array of objects, so we do it.
+           varsets= eval( 'var result=' +fileObj+ '; result' );
+     }
       
-      // @TODO re-write this. It doesn't make sense.
       if (varsets === null || varsets.length === 0) {
         throw new Error("A JSON object could not be loaded, or the file was empty.");
       }
