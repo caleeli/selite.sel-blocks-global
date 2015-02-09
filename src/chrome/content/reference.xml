@@ -272,7 +272,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
 <function name="try">
     <param name="tryName">Label-like name of this try block, used for validation of proper pairing; optional.</param>
     <comment>
-        It starts a <code>try..catch..finally..endTry</code> block. If there is any exception/error within this block, then any subsequent steps are skipped and it runs the <code>catch</code> part (optional). If there's a <code>finally</code> part, that gets whether the <code>try</code> part was successful or not.
+        It starts a <code>try..catch..finally..endTry</code> block. If there is any exception/error within this block, then any subsequent steps are skipped and it runs the <code>catch</code> part (optional). If there's a <code>finally</code> part, that gets executed whether the <code>try</code> part was successful or not.
         <br/>
         This command is a part of SeLite SelBlocks Global.
     </comment>
