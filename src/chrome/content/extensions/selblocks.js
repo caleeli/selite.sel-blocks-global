@@ -2217,13 +2217,13 @@ function $X(xpath, contextNode, resultType) {
     
     var originalGetEval= Selenium.prototype.getEval;
     Selenium.prototype.getEval = function getEval(script) {
-        // Parameter script should be a primitive string. If it is an object, it's a result of exactly one `..` (with no prefix & postfix) yeilding an object, or a result of @`..` (with an optional prefix/postfix) as processed by Selenium.prototype.preprocessParameter() as overriden by SelBlocksGlobal. Such parameters should not be used with getEval. Either when you use @`..` syntax in a Selenese parameter.
-        // See https://code.google.com/p/selite/wiki/EnhancedSyntax.
+        // Parameter script should be a primitive string. If it is an object, it's a result of exactly one expression within `...` (with no prefix & postfix) yeilding an object, or a result of @`...` (with an optional prefix/postfix) as processed by Selenium.prototype.preprocessParameter() as overriden by SelBlocksGlobal. Such parameters should not be used with getEval.
         if( typeof script==='object' ) {
-            var msg= "You must call getEval with a primitive (non-object) string";
+            var msg= "You must call getEval (and its derivatives such as storeEval) with a primitive (non-object) string in Target parameter.";
             msg+= script.seLiteExtra!==undefined
-                ? " and without extra parameter passed through enhanced syntax @`...`"
-                : ". But you've called it with an object of class " +SeLiteMisc.classNameOf(script);
+                ? " Don't use enhanced syntax @`...` for Target."
+                : " However, you've used enhanced syntax =`...` for Target, which resulted in an object of class " +SeLiteMisc.classNameOf(script)+ ". Alternatively, if you'd really like to pass the string value of this object (that is a result of =`...`) as a parameter to command getEval (or storeEval...), which would then evaluate it as a Javascript expression (again), put space(s) before the leading @` and/or after trailing `.";
+            msg+= " See https://code.google.com/p/selite/wiki/EnhancedSyntax."
             SeLiteMisc.fail( msg );
         }
         return originalGetEval.call( this, script );
