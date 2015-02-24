@@ -2195,9 +2195,9 @@ function $X(xpath, contextNode, resultType) {
                     prefix= prefix.substring( 0, prefix.length-1 );
                 }
                 else {
-                    if( prefix.endsWith('#') ) {
+                    if( prefix.endsWith('//') ) {
                         value= SeLiteMisc.xpath_escape_quote( ''+value );
-                        prefix= prefix.substring( 0, prefix.length-1 );
+                        prefix= prefix.substring( 0, prefix.length-2 );
                     }
                 }
                 alreadyProcessedDoubledBackApostrophes= true;
@@ -2222,7 +2222,7 @@ function $X(xpath, contextNode, resultType) {
             var msg= "You must call getEval (and its derivatives such as storeEval) with a primitive (non-object) string in Target parameter.";
             msg+= script.seLiteExtra!==undefined
                 ? " Don't use enhanced syntax @`...` for Target."
-                : " However, you've used enhanced syntax =`...` for Target, which resulted in an object of class " +SeLiteMisc.classNameOf(script)+ ". Alternatively, if you'd really like to pass the string value of this object (that is a result of =`...`) as a parameter to command getEval (or storeEval...), which would then evaluate it as a Javascript expression (again), put space(s) before the leading @` and/or after trailing `.";
+                : " However, you've used enhanced syntax =`...` for Target, which resulted in an object of class " +SeLiteMisc.classNameOf(script)+ ". Alternatively, if you'd really like to pass the string value of this object as a parameter to command getEval (or storeEval...), which would then evaluate it as a Javascript expression (again), use `...` instead.";
             msg+= " See https://code.google.com/p/selite/wiki/EnhancedSyntax."
             SeLiteMisc.fail( msg );
         }
