@@ -2137,7 +2137,7 @@ function $X(xpath, contextNode, resultType) {
     var originalPreprocessParameter= Selenium.prototype.preprocessParameter;
     // This sets a head intercept of chrome/content/selenium-core/scripts/selenium-api.js. See EnhancedSyntax.wiki
     var enclosedByEqualsBackApostrophes= /^=`(([^`]|``)*)`$/g; // For handling =`..`
-    // This adds support for javascript expressions enclosed with `..`, #`..` or @`..`
+    // This adds support for javascript expressions enclosed with `..`, \`..` or @`..`
     // as documented at https://code.google.com/p/selite/wiki/EnhancedSyntax.
     // If the user wants to pass a backapostrophe to the result, double it - ``.
     // The 3rd captured group - the postfix - is guaranteed not to end with # or @  that would be just before the next occurrence of `..` (if any)
@@ -2164,7 +2164,7 @@ function $X(xpath, contextNode, resultType) {
             }
         }
         numberOfBackApostrophes%2===0 || SeLiteMisc.fail( "SeLite SelBlocks Global and its EnhancedSyntax doesn't allow Selenese parameters to contain an odd number of back apostrophes `. The parameter value was: " +whole );
-        // Match `..`, #`..`, =`..` and @`..`. Replace $xx parts with respective stored variables. Evaluate. If it was #`..`, then escape it as an XPath string. If it was @`...`, then make the rest a String object (rather than a string primitive) and store thesult of Javascript in field seLiteExtra on that String object.
+        // Match `..`, \`..`, =`..` and @`..`. Replace $xx parts with respective stored variables. Evaluate. If it was \`..`, then escape it as an XPath string. If it was @`...`, then make the rest a String object (rather than a string primitive) and store thesult of Javascript in field seLiteExtra on that String object.
         // I don't replace through a callback function - e.g. whole.replace( enclosedByBackApostrophes, function replacer(match, field) {..} ) - because that would always cast the replacement result as string.
         var match;
         enclosedByEqualsBackApostrophes.lastIndex= 0;
@@ -2195,9 +2195,9 @@ function $X(xpath, contextNode, resultType) {
                     prefix= prefix.substring( 0, prefix.length-1 );
                 }
                 else {
-                    if( prefix.endsWith('//') ) {
+                    if( prefix.endsWith("\\") ) {
                         value= SeLiteMisc.xpath_escape_quote( ''+value );
-                        prefix= prefix.substring( 0, prefix.length-2 );
+                        prefix= prefix.substring( 0, prefix.length-1 );
                     }
                 }
                 alreadyProcessedDoubledBackApostrophes= true;
